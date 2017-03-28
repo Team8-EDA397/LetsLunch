@@ -1,5 +1,16 @@
 # LetsLunch
 An Android app for happier lunchin'.
+
+### Useful links
+https://guides.github.com/features/issues/ - Brief introduction to using issues in GitHub
+https://help.github.com/articles/closing-issues-via-commit-messages/ - How to connect issues to commits/closing issues.
+
+### Git guidelines
+1. Commit often. Do one thing, then commit the change, before doing one more thing.
+2. Make sure everything works before commiting, and especially before pushing. 
+3. A "thing" can be small or large, and may affect multiple files. Try to keep them as small as possible, while following p.2.
+
+
 #### Commit style ####
 Template:
 
