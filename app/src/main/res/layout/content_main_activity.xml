@@ -1,20 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.letslunch.agileteam8.letslunch.MainActivityActivity"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="com.letslunch.agileteam8.letslunch.MainActivity"
     tools:showIn="@layout/main_activity">
 
-    <TextView
+    <!--<Button
+        android:text="@string/es"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/spanishButton"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/login" />
 
-</android.support.constraint.ConstraintLayout>
+    <Button
+        android:text="@string/en"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/englishButton"
+        android:layout_alignParentTop="true"
+        android:layout_toStartOf="@+id/login" />
+
+    <Button
+        android:text="Settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/settingsButton" />-->
+
+    <Button
+        android:text="@string/login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/login"
+        android:drawableTop="@drawable/ic_login"
+        android:background="@drawable/bg_btn_add_it"
+        android:textColor="@color/btn_add_color"
+        android:layout_marginBottom="66dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/pass"
+        android:layout_alignEnd="@+id/pass"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textNoSuggestions"
+        android:hint="@string/user"
+        android:ems="10"
+        android:id="@+id/user"
+        android:drawableStart="@drawable/ic_user"
+        android:layout_marginBottom="14dp"
+        android:layout_above="@+id/pass"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPassword"
+        android:hint="@string/pass"
+        android:ems="10"
+        android:id="@+id/pass"
+        android:drawableStart="@drawable/ic_pass"
+        android:layout_marginBottom="49dp"
+        android:layout_above="@+id/login"
+        android:layout_alignStart="@+id/user" />
+
+    <!-- We can use this in the future in case we want to save
+    credentials. Nevertheless, we will manage this with the server I think
+    <CheckBox
+        android:text="@string/saveCredentials"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/saveCredentials"
+        android:layout_marginTop="12dp"
+        android:layout_below="@+id/pass"
+        android:layout_centerHorizontal="true" />
+    -->
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:srcCompat="@drawable/splash_img"
+        android:id="@+id/wholeLogo"
+        android:contentDescription="@string/main_logo"
+        android:layout_marginBottom="45dp"
+        android:layout_above="@+id/user"
+        android:layout_alignParentStart="true" />
+
+    <TextView android:id="@+id/link_signup"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="33dp"
+        android:text="No account yet? Create one"
+        android:gravity="center"
+        android:textSize="16dip"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" />
+
+    <!--
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/ic_localization"
+        android:id="@+id/locButton"
+        android:contentDescription="@string/localization_description"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true" />
+    -->
+
+</RelativeLayout>
