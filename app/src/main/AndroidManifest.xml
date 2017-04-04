@@ -38,6 +38,17 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".ReminderReceiver"
+            android:enabled="true"
+            android:exported="false" >
+        </receiver>
+        <service
+            android:name="ReminderAlarmService"
+            android:exported="false" >
+        </service>
+
         <activity
             android:name=".SelectionActivity"
             android:screenOrientation="portrait" />
@@ -58,6 +69,7 @@
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps"></activity>
         <activity android:name=".SignupActivity"></activity>
+
     </application>
 
 </manifest>
