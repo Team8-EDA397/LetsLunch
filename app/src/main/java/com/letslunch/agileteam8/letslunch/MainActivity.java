@@ -8,8 +8,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
+
+    NetworkHandler networkHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,8 +29,25 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                networkHandler.setNextData((short)1);
+                networkHandler.connectTo("kolle");
+                networkHandler.thread.run();
+
             }
         });
+
+        FloatingActionButton test = (FloatingActionButton) findViewById(R.id.fab);
+        test.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                networkHandler.startThread();
+            }
+        });
+
+
+        networkHandler = new NetworkHandler (this);
+        networkHandler.startThread();
+        //networkHandler.setNextData((short)1);
     }
 
     @Override
@@ -48,5 +70,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Called by NetworkHandler when data has been received from a peer.
+     * @param data the peer's profile data
+     */
+    public void receiveDataFromPeer(String data)
+    {
+        Toast.makeText(getApplicationContext(), "Connected",Toast.LENGTH_SHORT ).show();
     }
 }
