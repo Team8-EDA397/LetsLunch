@@ -1,6 +1,8 @@
 # LetsLunch
 An Android app for happier lunchin'.
 
+[![Build Status](https://travis-ci.org/Team8-EDA397/LetsLunch.svg?branch=master)](https://travis-ci.org/Team8-EDA397/LetsLunch)
+
 ### Useful links
 https://guides.github.com/features/issues/ - Brief introduction to using issues in GitHub
 https://help.github.com/articles/closing-issues-via-commit-messages/ - How to connect issues to commits/closing issues.

@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                     // Check if we read back the same chars that we had written out
-                    if (credentials.equals(readString) || !(credentials.equals(null)))  {
+                    if (credentials.equals(readString))  {
                         Intent selectionActivity = new Intent(MainActivity.this, SelectionActivity.class);
                         startActivity(selectionActivity);
                         return;
