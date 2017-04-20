@@ -15,6 +15,12 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import android.content.Intent;
 import android.text.TextUtils;
 
@@ -28,6 +34,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
     private TextView textViewLoginLink;
     private ProgressDialog progressDialog;
     private FirebaseAuth firebaseAuth;
+    private DatabaseReference databaseReference;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -37,6 +44,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
 
         // Initializing the FirebaseAuth Object
         firebaseAuth = FirebaseAuth.getInstance();
+        this.databaseReference = FirebaseDatabase.getInstance().getReference();
 
         // Initializing the widgets
         editTextName        = (EditText) findViewById(R.id.input_name);
@@ -60,6 +68,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         {
             // Create the Account
             this.createAccount();
+
         }
         else if (v == textViewLoginLink)
         {
@@ -79,13 +88,14 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         String email    = this.editTextEmail.getText().toString().trim();
         String password = this.edittextPassword.getText().toString().trim();
 
+        // Displaying message and showing the progress dialog
+        progressDialog.setMessage("Creating Account ...");
+        progressDialog.show();
+
+
         // Validating that all information was provided
         if (this.isAllInfoProvided(name,email,password))
         {
-            // Displaying message and showing the progress dialog
-            progressDialog.setMessage("Creating Account ...");
-            progressDialog.show();
-
             // Firebase code for creating user
             firebaseAuth.createUserWithEmailAndPassword(email,password)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
@@ -99,6 +109,9 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                             // Determine if task was completed successfully
                             if(task.isSuccessful())
                             {
+                                // Store user to Db
+                                storingUserInfoInDB();
+
                                 // Finish current activity
                                 finish();
 
@@ -114,6 +127,36 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                         }
                     });
         }
+    }
+
+    // The purpose o
+    private void storingUserInfoInDB()
+    {
+        // Getting credentials
+        String name = this.editTextName.getText().toString().trim();
+
+        // Create a user object
+        aUser myUser = new aUser(name);
+
+        // Firebase logic
+        this.databaseReference.child("Users").child(firebaseAuth.getCurrentUser().getUid()).setValue(myUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        {
+            @Override
+            public void onComplete(@NonNull Task<Void> task)
+            {
+                // Determine if task was completed successfully
+                if(!task.isSuccessful())
+                {
+                    // Stop the progress dialog
+                    progressDialog.dismiss();
+
+                    // Notifying the user that saving was NOT successful
+                    Toast.makeText(SignupActivity.this, "Unable to Save user", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+
     }
 
     // Validating that information was provided to all input fields
