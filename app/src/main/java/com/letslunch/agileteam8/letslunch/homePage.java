@@ -19,8 +19,10 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
 {
     // Widgets variables
     private Button buttonLogOut;
+    private Button buttonCreateGroup;
+    private Button buttonJoinGroup;
 
-    // Local variables
+    // Firebase variables
     FirebaseAuth firebaseAuth;
 
     @Override
@@ -29,14 +31,18 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
-        // Instantiation local variables
+        // Instantiation firebase variable
         firebaseAuth    = FirebaseAuth.getInstance();
 
         // Instantiating widgets
-        buttonLogOut    = (Button) findViewById(R.id.logoutButton);
+        buttonLogOut        = (Button) findViewById(R.id.logoutButton);
+        buttonCreateGroup   = (Button) findViewById(R.id.buttonCreateGroup);
+        buttonJoinGroup     = (Button) findViewById(R.id.buttonJoinGroup);
 
         // Setting listeners
         buttonLogOut.setOnClickListener(this);
+        buttonCreateGroup.setOnClickListener(this);
+        buttonJoinGroup.setOnClickListener(this);
 
         // Checking if the user is sign-in or not
         if (!this.isUserAlreadySignedIn(firebaseAuth))
@@ -54,10 +60,20 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     @Override
     public void onClick(View v)
     {
-        if (v == buttonLogOut)
+        if (v == this.buttonLogOut)
         {
             // Sign the user out
             this.signUserOut();
+        }
+        else if (v == this.buttonCreateGroup)
+        {
+            // Move to the createGroup activity
+            startActivity(new Intent(this, createGroup.class));
+
+        }
+        else if (v == this.buttonJoinGroup)
+        {
+            // Move to the joinGroup activity
         }
     }
 

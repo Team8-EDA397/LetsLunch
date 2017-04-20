@@ -42,11 +42,11 @@
         <receiver
             android:name=".ReminderReceiver"
             android:enabled="true"
-            android:exported="false"></receiver>
+            android:exported="false" />
 
         <service
             android:name=".ReminderAlarmService"
-            android:exported="false"></service>
+            android:exported="false" />
 
         <activity
             android:name=".SelectionActivity"
@@ -68,7 +68,8 @@
             android:name=".MapsActivity"
             android:label="@string/title_activity_maps" />
         <activity android:name=".SignupActivity" />
-        <activity android:name=".homePage"></activity>
+        <activity android:name=".homePage" />
+        <activity android:name=".createGroup"></activity>
     </application>
 
 </manifest>
