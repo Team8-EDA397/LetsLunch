@@ -8,9 +8,10 @@
 
     <TextView
         android:id="@+id/textViewHeaderCreateGroup"
-        android:layout_width="130dp"
-        android:layout_height="22dp"
+        android:layout_width="341dp"
+        android:layout_height="44dp"
         android:text="Create a Group"
+        android:textSize="20dp"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="16dp"
         android:layout_marginRight="8dp"
@@ -21,7 +22,9 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="8dp"
-        app:layout_constraintVertical_bias="0.017" />
+        app:layout_constraintVertical_bias="0.017"
+        tools:layout_editor_absoluteY="21dp"
+        tools:layout_editor_absoluteX="43dp" />
 
     <EditText
         android:id="@+id/editTextGroupName"
@@ -35,7 +38,7 @@
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="8dp"
-        app:layout_constraintVertical_bias="0.222"
+        app:layout_constraintVertical_bias="0.108"
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginLeft="8dp"
@@ -57,7 +60,7 @@
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="8dp"
-        app:layout_constraintVertical_bias="0.375" />
+        app:layout_constraintVertical_bias="0.232" />
 
     <EditText
         android:id="@+id/editTextSetTime"
@@ -74,7 +77,7 @@
         android:layout_marginBottom="8dp"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="8dp"
-        app:layout_constraintVertical_bias="0.524" />
+        app:layout_constraintVertical_bias="0.348" />
 
     <Button
         android:id="@+id/buttonGroupCreation"
@@ -90,5 +93,5 @@
         android:layout_marginBottom="8dp"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginTop="8dp"
-        app:layout_constraintVertical_bias="0.902" />
+        app:layout_constraintVertical_bias="0.453" />
 </android.support.constraint.ConstraintLayout>

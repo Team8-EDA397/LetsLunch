@@ -69,7 +69,8 @@
             android:label="@string/title_activity_maps" />
         <activity android:name=".SignupActivity" />
         <activity android:name=".homePage" />
-        <activity android:name=".createGroup"></activity>
+        <activity android:name=".createGroup" />
+        <activity android:name=".joinGroup"></activity>
     </application>
 
 </manifest>

@@ -74,6 +74,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         else if (v == this.buttonJoinGroup)
         {
             // Move to the joinGroup activity
+            startActivity(new Intent(this, joinGroup.class));
         }
     }
 
