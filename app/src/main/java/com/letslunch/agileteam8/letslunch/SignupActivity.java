@@ -103,7 +103,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                                 finish();
 
                                 // Jump to Selection activity
-                                startActivity(new Intent(getApplicationContext(), SelectionActivity.class));
+                                startActivity(new Intent(getApplicationContext(), homePage.class));
                             }
                             else
                             {

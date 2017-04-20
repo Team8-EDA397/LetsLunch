@@ -18,9 +18,7 @@ public class SelectionActivity extends AppCompatActivity {
     // Local Variables
     Button buylunch;
     Button lunchbox;
-    Button buttonLogOut;
     FirebaseAuth firebaseAuth;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,46 +36,9 @@ public class SelectionActivity extends AppCompatActivity {
         lunchbox = (Button) findViewById(R.id.buttonlb);
         lunchbox.setOnClickListener(lunchboxOncLickListener);
 
-        buttonLogOut = (Button) findViewById(R.id.buttonLogout);
-        buttonLogOut.setOnClickListener(logOutButtonListener);
-
-        // Checking if the user is signing or not
-        if (!this.isUserAlreadySignedIn(firebaseAuth))
-        {
-            // Finish current activity
-            finish();
-
-            // Jump to the login activity
-            startActivity(new Intent(this, MainActivity.class));
-        }
     }
 
-    // The purpose of this function is to determine if a user is already logged in to the app.
-    private boolean isUserAlreadySignedIn(FirebaseAuth firebaseObject)
-    {
-        if(firebaseObject.getCurrentUser() != null )
-        {
-            return true;
-        }
 
-        return false;
-    }
-
-    private View.OnClickListener logOutButtonListener = new View.OnClickListener()
-    {
-        @Override
-        public void onClick(View v)
-        {
-            // Logout from Firebase
-            firebaseAuth.signOut();
-
-            // Finishing the current activity
-            finish();
-
-            // Jumping to the login activity
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
-        }
-    };
 
     private View.OnClickListener buylunchOnClickListener = new View.OnClickListener() {
         @Override

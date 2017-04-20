@@ -61,8 +61,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Exit the current activity
             finish();
 
-            // Jump to Selection Activity
-            startActivity(new Intent(this, SelectionActivity.class));
+            // Jump to Home Activity
+            startActivity(new Intent(this, homePage.class));
         }
     }
 
@@ -115,8 +115,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             {
                                 finish();
 
-                                // Jump to Selection Activity
-                                startActivity(new Intent(getApplicationContext(), SelectionActivity.class));
+                                // Jump to homePage Activity
+                                startActivity(new Intent(getApplicationContext(), homePage.class));
                             }
                             else
                             {

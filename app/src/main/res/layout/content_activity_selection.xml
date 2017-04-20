@@ -58,13 +58,5 @@
         android:paddingTop="5dp"
         />
 
-    <Button
-        android:id="@+id/buttonLogout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:text="Log Out" />
-
 
 </RelativeLayout>
