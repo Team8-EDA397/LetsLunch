@@ -2,11 +2,9 @@ package com.letslunch.agileteam8.letslunch;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.nfc.Tag;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,12 +14,9 @@ import android.support.annotation.NonNull;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+
 
 
 public class createGroup extends AppCompatActivity implements View.OnClickListener
@@ -84,6 +79,9 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
 
                 // Assign the creator of the group to the newly created group
                 this.addingGroupCreatorToHisGroup();
+
+                // Adding the group to his creator
+                this.addingGroupToOwner();
             }
         }
     }
@@ -111,7 +109,7 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
                     if(task.isSuccessful())
                     {
                         // Move back to home screen
-                        startActivity(new Intent(getApplicationContext(), homePage.class));
+                        finish();
 
                     }
                     else
@@ -129,7 +127,7 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
     {
 
         //Firebase logic for creating group
-        this.databaseReference.child("Groups-Members").child(createdGroupID).child(firebaseAuth.getCurrentUser().getUid()).setValue(firebaseAuth.getCurrentUser().getUid()).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        this.databaseReference.child("GroupsAndTheirMembers").child(createdGroupID).child(firebaseAuth.getCurrentUser().getUid()).setValue(firebaseAuth.getCurrentUser().getUid()).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
@@ -139,6 +137,27 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
                 {
                     // Notifying the user that saving was NOT successful
                     Toast.makeText(createGroup.this, "Unable to add you to the created group. Try Manually.", Toast.LENGTH_SHORT).show();
+
+                }
+            }
+        });
+
+    }
+
+    // The purpose of this function is to assign to a given owner the groups he belongs to
+    private void addingGroupToOwner()
+    {
+        //Firebase logic for creating group
+        this.databaseReference.child("UserAndTheirGroups").child(firebaseAuth.getCurrentUser().getUid()).child(createdGroupID).setValue(createdGroupID).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        {
+            @Override
+            public void onComplete(@NonNull Task<Void> task)
+            {
+                // Determine if task was completed successfully
+                if(!task.isSuccessful())
+                {
+                    // Notifying the user that saving was NOT successful
+                    Toast.makeText(createGroup.this, "Unable to add assign a group to you.", Toast.LENGTH_SHORT).show();
 
                 }
             }
