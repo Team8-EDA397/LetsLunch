@@ -15,6 +15,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -109,8 +110,8 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                             // Determine if task was completed successfully
                             if(task.isSuccessful())
                             {
-                                // Store user to Db
-                                storingUserInfoInDB();
+                                // Set user display name in firebase
+                                setUserDisplayName(editTextName.getText().toString().trim());
 
                                 // Finish current activity
                                 finish();
@@ -127,36 +128,6 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                         }
                     });
         }
-    }
-
-    // The purpose o
-    private void storingUserInfoInDB()
-    {
-        // Getting credentials
-        String name = this.editTextName.getText().toString().trim();
-
-        // Create a user object
-        aUser myUser = new aUser(name);
-
-        // Firebase logic
-        this.databaseReference.child("Users").child(firebaseAuth.getCurrentUser().getUid()).setValue(myUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
-        {
-            @Override
-            public void onComplete(@NonNull Task<Void> task)
-            {
-                // Determine if task was completed successfully
-                if(!task.isSuccessful())
-                {
-                    // Stop the progress dialog
-                    progressDialog.dismiss();
-
-                    // Notifying the user that saving was NOT successful
-                    Toast.makeText(SignupActivity.this, "Unable to Save user", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-
     }
 
     // Validating that information was provided to all input fields
@@ -185,6 +156,13 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         }
 
         return true;
+    }
+
+    // The purpose of this function is to set the display name of the user
+    private void setUserDisplayName(String name)
+    {
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(name).build();
+        firebaseAuth.getCurrentUser().updateProfile(profileUpdates);
     }
 
 } // End of Signup Activity
