@@ -9,11 +9,22 @@ import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class homePage extends AppCompatActivity implements View.OnClickListener
 {
@@ -24,6 +35,14 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
 
     // Firebase variables
     FirebaseAuth firebaseAuth;
+
+    DatabaseReference databaseGroups;
+
+    ListView listViewGroups;
+
+    List<Group> groupList;
+
+    String currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -54,9 +73,50 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
             startActivity(new Intent(this, MainActivity.class));
         }
 
+        // Getting the reference of artists node
+        databaseGroups = FirebaseDatabase.getInstance().getReference();
+
+        // Getting information about the current user
+        currentUser = firebaseAuth.getCurrentUser().getUid();
+
+        listViewGroups = (ListView) findViewById(R.id.listViewGroups);
+
+        groupList = new ArrayList<>();
+
     }
 
-    // Performing appropriate actions dependending on what button is clicked
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        databaseGroups.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange (DataSnapshot dataSnapshot) {
+                groupList.clear();
+                for(DataSnapshot groupsSnapshot : dataSnapshot.getChildren()){
+
+                    // if (groupsSnapshot.getValue().equals(firebaseAuth.getCurrentUser().getUid())){
+                    //    Group group = new Group(firebaseAuth.getCurrentUser().getUid(),"","","");
+                    //    groupList.add(group);
+
+                     Group group = groupsSnapshot.getValue(Group.class);
+                     groupList.add(group);
+                }
+
+                GroupList adapter = new GroupList(homePage.this,groupList);
+                listViewGroups.setAdapter(adapter);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+
+
+    // Performing appropriate actions depending on what button is clicked
     @Override
     public void onClick(View v)
     {
@@ -102,8 +162,5 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         // Jumping to the login activity
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
-
-
-
 
 } // End of class
