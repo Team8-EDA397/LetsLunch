@@ -12,6 +12,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -72,8 +73,14 @@ public class joinGroup extends AppCompatActivity implements View.OnClickListener
     // The purpose of this function is to add the user to the given group
     private void userToGroupAddition()
     {
+        // A firebase user object
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+
+        // Create aUser object
+        aUser myUser = new aUser(user.getDisplayName());
+
         //Firebase logic for creating group
-        this.databaseReference.child("GroupsAndTheirMembers").child(groupCode).child(firebaseAuth.getCurrentUser().getUid()).setValue(firebaseAuth.getCurrentUser().getUid()).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        this.databaseReference.child("GroupsAndTheirMembers").child(groupCode).child(user.getUid()).setValue(myUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
@@ -91,10 +98,10 @@ public class joinGroup extends AppCompatActivity implements View.OnClickListener
     }
 
     // The purpose of this function is to add the group to a given user
-    private void groupToUserAddition()
+    private void groupToUserAddition(Group groupToJoin)
     {
         //Firebase logic for creating group
-        this.databaseReference.child("UserAndTheirGroups").child(firebaseAuth.getCurrentUser().getUid()).child(groupCode).setValue(groupCode).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        this.databaseReference.child("UserAndTheirGroups").child(firebaseAuth.getCurrentUser().getUid()).child(groupToJoin.getID()).setValue(groupToJoin).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
@@ -121,14 +128,24 @@ public class joinGroup extends AppCompatActivity implements View.OnClickListener
             {
                 if(dataSnapshot.hasChild(groupCode)) // The provided code is valid
                 {
-                    // Join the user to group
-                    userToGroupAddition();
+                    for (DataSnapshot data : dataSnapshot.getChildren())
+                    {
+                        Group myGroup = data.getValue(Group.class);
+                        if (myGroup.getID().equals(groupCode))
+                        {
+                            // Set group to user
+                            groupToUserAddition(myGroup);
 
-                    // Set group to user
-                    groupToUserAddition();
+                            // Join the user to group
+                            userToGroupAddition();
 
-                    // finish the current activity
-                    finish();
+                            // finish the current activity
+                            finish();
+
+                            // Exit
+                            return;
+                        }
+                    }
 
                 }
                 else
