@@ -7,15 +7,7 @@ package com.letslunch.agileteam8.letslunch;
 public class aUser
 {
     private String name;
-    private int eatingStatus;
-
-    /* eatingStatus values:
-
-    -1  = Buying food
-    0   = has not responded
-    1   = Bringing his lunch
-
-     */
+    private String eatingStatus;
 
     // Default constructor
     public aUser()
@@ -26,7 +18,13 @@ public class aUser
     public aUser(String aName)
     {
         this.name = aName;
-        this.eatingStatus = 0;
+        this.eatingStatus = "No Status";
+    }
+
+    public aUser(String aName, String aStatus )
+    {
+        this.name           = aName;
+        this.eatingStatus   = aStatus;
     }
 
     // Getter
@@ -35,7 +33,7 @@ public class aUser
         return name;
     }
 
-    public int getEatingStatus()
+    public String getEatingStatus()
     {
         return eatingStatus;
     }
