@@ -11,4 +11,7 @@
     <string name="title_activity_maps">Map</string>
     <string name="location_label">Location</string>
     <string name="map_info">Map</string>
+    <string name="OK">ok</string>
+    <string name="restaurant">Buy lunch</string>
+    <string name="neutral">Not attend</string>
 </resources>

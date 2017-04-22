@@ -9,7 +9,7 @@ public class Group
     private String name;
     private String location;
     private String time;
-    private String ID;
+    private String id;
 
     // Default constructor
     public Group()
@@ -22,7 +22,7 @@ public class Group
         this.name       = aName;
         this.location   = aLocation;
         this.time       = aTime;
-        this.ID         = anID;
+        this.id         = anID;
     }
 
     // Getters
@@ -39,7 +39,7 @@ public class Group
     }
 
     public String getID() {
-        return ID;
+        return id;
     }
 
 } // End of class
