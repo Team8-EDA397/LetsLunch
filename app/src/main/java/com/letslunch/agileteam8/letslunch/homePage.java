@@ -1,5 +1,8 @@
 package com.letslunch.agileteam8.letslunch;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.Context;
@@ -8,7 +11,10 @@ import android.content.SharedPreferences;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -25,6 +31,9 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.letslunch.agileteam8.letslunch.R.id.icon_group;
+import static com.letslunch.agileteam8.letslunch.R.id.parent;
 
 public class homePage extends AppCompatActivity implements View.OnClickListener
 {
@@ -82,6 +91,50 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         listViewGroups = (ListView) findViewById(R.id.listViewGroups);
 
         groupList = new ArrayList<>();
+
+        listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+                AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
+                alert.setTitle("Lets Lunch ");
+                alert.setIcon(R.drawable.splash_img);
+                alert.setMessage("Group: "+groupList.get(position).getName()+
+                        "\n"+"Id: "+groupList.get(position).getID()+
+                        "\n"+"Location: "+groupList.get(position).getLocation()+
+                        "\n"+"Time: "+groupList.get(position).getTime()
+                );
+
+                alert.setNegativeButton(R.string.lunch_box,
+                        new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                alert.setPositiveButton(R.string.restaurant,
+                        new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                alert.setNeutralButton(R.string.neutral,
+                        new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                // Jump to homePage Activity
+                                //startActivity(new Intent(getApplicationContext(), Splashscreen.class));
+                            }
+                        });
+
+                alert.show();
+
+            }});
 
     }
 

@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:theme="@style/Theme.AppCompat"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.letslunch.agileteam8.letslunch.homePage">
@@ -55,7 +56,7 @@
         android:layout_marginTop="41dp"
         android:layout_below="@+id/listViewGroups"
         android:layout_alignStart="@+id/listViewGroups"
-        android:layout_alignEnd="@+id/buttonJoinGroup" />
+        android:layout_alignEnd="@+id/listViewGroups" />
 
     <ListView
         android:id="@+id/listViewGroups"
@@ -73,6 +74,7 @@
         android:id="@+id/existingGroups"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@color/colorPrimaryDark"
         android:text="Existing Groups"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
         tools:layout_editor_absoluteY="31dp"
