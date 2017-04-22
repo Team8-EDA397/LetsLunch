@@ -67,7 +67,6 @@
         android:layout_marginTop="13dp"
         android:layout_below="@+id/existingGroups"
         android:layout_centerHorizontal="true">
-
     </ListView>
 
     <TextView

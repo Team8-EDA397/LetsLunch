@@ -1,39 +1,23 @@
 package com.letslunch.agileteam8.letslunch;
 
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Vibrator;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.text.Html;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
-
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.letslunch.agileteam8.letslunch.R.id.icon_group;
-import static com.letslunch.agileteam8.letslunch.R.id.parent;
 
 public class homePage extends AppCompatActivity implements View.OnClickListener
 {
@@ -48,8 +32,11 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     ListView listViewGroups;
 
     List<Group> groupList;
+    List<aUser> usersList;
 
     String currentUser;
+
+    String groupID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -85,6 +72,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         listViewGroups = (ListView) findViewById(R.id.listViewGroups);
 
         groupList = new ArrayList<>();
+        usersList = new ArrayList<>();
 
         listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
@@ -93,10 +81,46 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                 AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
                 alert.setTitle("Lets Lunch ");
                 alert.setIcon(R.drawable.splash_img);
+
+                groupID = groupList.get(position).getID();
+
+                databaseGroups.child("GroupsAndTheirMembers").child(groupID).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        usersList.clear();
+                        for(DataSnapshot usersSnapshot : dataSnapshot.getChildren()){
+
+                            // if (groupsSnapshot.getValue().equals(firebaseAuth.getCurrentUser().getUid())){
+                            //    Group group = new Group(firebaseAuth.getCurrentUser().getUid(),"","","");
+                            //    groupList.add(group);
+
+                            aUser user = usersSnapshot.getValue(aUser.class);
+                            usersList.add(user);
+                        }
+
+                        // UserList adapter = new UserList(homePage.this,usersList);
+                        // listViewUsers.setAdapter(adapter);
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+                String users = "";
+
+                for(int i = 0;i<usersList.size();i++){
+                    users = users + usersList.get(i).getName() + " \n";
+                }
+
                 alert.setMessage("Group: "+groupList.get(position).getName()+
                         "\n"+"Id: "+groupList.get(position).getID()+
                         "\n"+"Location: "+groupList.get(position).getLocation()+
-                        "\n"+"Time: "+groupList.get(position).getTime()
+                        "\n"+"Time: "+groupList.get(position).getTime()+"\n"+
+
+                        "\n"+"Users \n"+users
                 );
 
                 alert.setNegativeButton(R.string.lunch_box,
@@ -159,6 +183,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
 
             }
         });
+
     }
 
 

@@ -8,7 +8,6 @@
         android:layout_width="344dp"
         android:layout_height="wrap_content"
         android:text="TextView"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="26dp" />
