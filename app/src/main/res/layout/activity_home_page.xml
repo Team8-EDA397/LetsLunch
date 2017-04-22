@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -16,55 +17,69 @@
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="95dp"
-        app:layout_constraintHorizontal_bias="0.421"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/buttonCreateGroup" />
+        app:layout_constraintHorizontal_bias="0.526"
+        app:layout_constraintTop_toBottomOf="@+id/buttonCreateGroup"
+        app:layout_constraintVertical_bias="1.0"
+        android:layout_below="@+id/buttonCreateGroup"
+        android:layout_alignEnd="@+id/listViewGroups"
+        android:layout_alignStart="@+id/listViewGroups" />
 
     <Button
         android:id="@+id/logoutButton"
         android:layout_width="167dp"
-        android:layout_height="39dp"
+        android:layout_height="48dp"
         android:text="Log Out"
-        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/buttonJoinGroup"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="25dp"
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintHorizontal_bias="0.502"
-        app:layout_constraintVertical_bias="0.876" />
+        app:layout_constraintVertical_bias="0.876"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:id="@+id/buttonCreateGroup"
-        android:layout_width="349dp"
+        android:layout_width="350dp"
         android:layout_height="49dp"
         android:text="Create a Group"
         android:layout_marginRight="8dp"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="203dp"
         app:layout_constraintHorizontal_bias="0.526"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="8dp"
-        app:layout_constraintVertical_bias="1.0" />
+        android:layout_marginTop="41dp"
+        android:layout_below="@+id/listViewGroups"
+        android:layout_alignStart="@+id/listViewGroups"
+        android:layout_alignEnd="@+id/buttonJoinGroup" />
+
+    <ListView
+        android:id="@+id/listViewGroups"
+        android:layout_width="346dp"
+        android:layout_height="216dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="18dp"
+        android:layout_marginTop="13dp"
+        android:layout_below="@+id/existingGroups"
+        android:layout_centerHorizontal="true">
+
+    </ListView>
 
     <TextView
-        android:id="@+id/textViewHeader"
-        android:layout_width="318dp"
-        android:layout_height="29dp"
+        android:id="@+id/existingGroups"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="Existing Groups"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="34dp"
-        android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginLeft="8dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintVertical_bias="0.0" />
-</android.support.constraint.ConstraintLayout>
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+        tools:layout_editor_absoluteY="31dp"
+        tools:layout_editor_absoluteX="31dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/listViewGroups"
+        android:layout_marginTop="24dp" />
+
+
+</RelativeLayout>
