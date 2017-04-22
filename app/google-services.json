@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "640691879946",
+    "firebase_url": "https://letslunch-b3adf.firebaseio.com",
+    "project_id": "letslunch-b3adf",
+    "storage_bucket": "letslunch-b3adf.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640691879946:android:519794bc984ebdfc",
+        "android_client_info": {
+          "package_name": "com.letslunch.agileteam8.letslunch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "640691879946-fikgits1o20jh96v1oh7sjctvrh8sja0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEB6DFe3GF6MjHviFBDoBpwcQ6cq6BzSo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,150 +1,195 @@
 package com.letslunch.agileteam8.letslunch;
 
-
 import android.app.AlarmManager;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
+import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Vibrator;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.NotificationCompat;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-
 import java.util.Calendar;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 
-public class MainActivity extends AppCompatActivity {
-
-    EditText user;
-    EditText pass;
-    Button login;
-    public static HashSet<String[]> users = new HashSet<>();
-    TextView _signupLink;
+public class MainActivity extends AppCompatActivity implements View.OnClickListener
+{
+    // Local Variables
+    private EditText editTextemail;
+    private EditText editTextpassword;
+    private Button buttonLogin;
+    private TextView textViewcreateAccountLink;
+    private ProgressDialog progressDialog;
+    private FirebaseAuth firebaseAuth;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+
+        // Initializing FirebaseAuth object
+        firebaseAuth = FirebaseAuth.getInstance();
+
+        // Initializing Widgets
+        editTextemail               = (EditText) findViewById(R.id.user);
+        editTextpassword            = (EditText) findViewById(R.id.pass);
+        buttonLogin                 = (Button) findViewById(R.id.login);
+        textViewcreateAccountLink   = (TextView) findViewById(R.id.link_signup);
+        progressDialog              = new ProgressDialog(this);
+
+        // Setting listeners
+        buttonLogin.setOnClickListener(this);
+        textViewcreateAccountLink.setOnClickListener(this);
+
+        // Sending notification
         sendNotification();
 
+        // Check if a user is already logged in
+        if (this.isUserAlreadySignedIn(firebaseAuth))
+        {
+            // Exit the current activity
+            finish();
 
-        user = (EditText) findViewById(R.id.user);
-        pass = (EditText) findViewById(R.id.pass);
+            // Jump to Home Activity
+            startActivity(new Intent(this, homePage.class));
+        }
+    }
 
-        login = (Button) findViewById(R.id.login);
-        login.setOnClickListener(loginOncLickListener);
+    // Performing appropriate actions dependending if "buttonLogin" or "textViewcreateAccountLink" is clicked
+    @Override
+    public void onClick(View v)
+    {
+        if (v == buttonLogin)
+        {
+            // Sign the user
+            this.signUser();
+        }
+        else if (v == textViewcreateAccountLink)
+        {
+            // Exit the current activity
+            finish();
 
-        _signupLink = (TextView) findViewById(R.id.link_signup);
-        _signupLink.setOnClickListener(signUpOncLickListener);
+            // Jump to Create Account Activity
+            startActivity(new Intent(this, SignupActivity.class));
+        }
 
     }
 
-    private View.OnClickListener loginOncLickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            switch (view.getId()) {
-                case R.id.login:
-                    String userS = user.getText().toString();
-                    String passS = pass.getText().toString();
-                    String credentials = new String(userS+" "+passS);
+    // The purpose of this function is to provide the logic for signing a user.
+    private void signUser()
+    {
+        // Getting user credentials
+        String email    = this.editTextemail.getText().toString().trim();
+        String password = this.editTextpassword.getText().toString().trim();
 
-                    // UNCOMMENT THIS WHEN DEMONSTRATION
-                    FileInputStream fIn = null;
-                    try {
-                        fIn = openFileInput("credentials.txt");
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    InputStreamReader isr = new InputStreamReader(fIn);
+        // Verifying that all email and password were provided
+        if (this.isAllInfoProvided(email,password))
+        {
+            // Displaying message and showing the progress dialog
+            progressDialog.setMessage("Signing User ...");
+            progressDialog.show();
 
-                    // Prepare a char-Array that will hold the chars we read back in.
-                    char[] inputBuffer = new char[SignupActivity.name.length()+SignupActivity.password.length()+1];
+            // Firebase logic for Signing in user
+            this.firebaseAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
+                    {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task)
+                        {
+                            // Stop the progress dialog
+                            progressDialog.dismiss();
 
-                    // Fill the Buffer with data from the file
-                    try {
-                        isr.read(inputBuffer);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                            // Determine if task was completed successfully
+                            if(task.isSuccessful())
+                            {
+                                finish();
 
-                    // Transform the chars to a String
-                    String readString = new String(inputBuffer);
+                                // Jump to homePage Activity
+                                startActivity(new Intent(getApplicationContext(), homePage.class));
+                            }
+                            else
+                            {
+                                // Notifying the user that registration was NOT successful
+                                Toast.makeText(MainActivity.this, "Unable to Sign In. Try Again.", Toast.LENGTH_SHORT).show();
+                            }
 
-
-                    // Check if we read back the same chars that we had written out
-                    if (credentials.equals(readString))  {
-                        Intent selectionActivity = new Intent(MainActivity.this, SelectionActivity.class);
-                        startActivity(selectionActivity);
-                        return;
-                    } else {
-                        Toast.makeText(getApplicationContext(), R.string.loginWRONG, Toast.LENGTH_SHORT).show();
-
-                        ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(400);
-                    }
-
-
-                    // Manual test fast
-                    /*
-                    Intent selectionActivity = new Intent(MainActivity.this, SelectionActivity.class);
-                    startActivity(selectionActivity);
-                    return;
-                    */
-            }
+                        }
+                    });
         }
-    };
+    }
 
-    private View.OnClickListener signUpOncLickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            Intent signUpActivity = new Intent(MainActivity.this, SignupActivity.class);
-            startActivity(signUpActivity);
+    // The purpose of this function is to determine if a user is already logged in to the app.
+    private boolean isUserAlreadySignedIn(FirebaseAuth firebaseObject)
+    {
+        if(firebaseObject.getCurrentUser() != null )
+        {
+            return true;
         }
-    };
+
+        return false;
+    }
+
+    // Validating that information was provided to all input fields
+    private boolean isAllInfoProvided(String email, String password)
+    {
+
+        if (TextUtils.isEmpty(email))
+        {
+            // Notify user the "Email" field is empty
+            Toast.makeText(this, "Please enter an email", Toast.LENGTH_SHORT).show();
+
+            return false;
+        }
+        else if (TextUtils.isEmpty(password))
+        {
+            // Notify user the "Password" field is empty
+            Toast.makeText(this, "Please enter a Password", Toast.LENGTH_SHORT).show();
+
+            return false;
+        }
+
+        return true;
+    }
+
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_settings)
+        {
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void sendNotification(){
+    public void sendNotification()
+    {
         Intent intent = new Intent(this, ReminderReceiver.class);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
@@ -152,8 +197,8 @@ public class MainActivity extends AppCompatActivity {
         // Set the alarm to start at approximately 7:30 p.m.
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.HOUR_OF_DAY, 19);
-        calendar.set(Calendar.MINUTE, 30);
+        calendar.set(Calendar.HOUR_OF_DAY, 16);
+        calendar.set(Calendar.MINUTE, 29);
 
         //set it to repeat every day (not tested)
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);

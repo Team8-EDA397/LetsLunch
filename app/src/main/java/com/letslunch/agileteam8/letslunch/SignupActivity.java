@@ -1,143 +1,147 @@
 package com.letslunch.agileteam8.letslunch;
 
+import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.app.ProgressDialog;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 
-import butterknife.ButterKnife;
-import butterknife.InjectView;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import android.content.Intent;
+import android.text.TextUtils;
 
-public class SignupActivity extends AppCompatActivity {
-    private static final String TAG = "SignupActivity";
-    public static String name;
-    public static String password;
-
-    @InjectView(R.id.input_name) EditText _nameText;
-    @InjectView(R.id.input_email) EditText _emailText;
-    @InjectView(R.id.input_password) EditText _passwordText;
-    @InjectView(R.id.btn_signup) Button _signupButton;
-    @InjectView(R.id.link_login) TextView _loginLink;
+public class SignupActivity extends AppCompatActivity implements View.OnClickListener
+{
+    // Local Variables
+    private EditText editTextName;
+    private EditText editTextEmail;
+    private EditText edittextPassword;
+    private Button buttonCreateAccount;
+    private TextView textViewLoginLink;
+    private ProgressDialog progressDialog;
+    private FirebaseAuth firebaseAuth;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
-        ButterKnife.inject(this);
 
-        _signupButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    signup();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        // Initializing the FirebaseAuth Object
+        firebaseAuth = FirebaseAuth.getInstance();
 
-        _loginLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Finish the registration screen and return to the Login activity
-                finish();
-            }
-        });
+        // Initializing the widgets
+        editTextName        = (EditText) findViewById(R.id.input_name);
+        editTextEmail       = (EditText) findViewById(R.id.input_email);
+        edittextPassword    = (EditText) findViewById(R.id.input_password);
+        buttonCreateAccount = (Button)   findViewById(R.id.btn_signup);
+        textViewLoginLink   = (TextView) findViewById(R.id.link_login);
+        progressDialog      =  new ProgressDialog(this);
+
+        // Setting listeners
+        buttonCreateAccount.setOnClickListener(this);
+        textViewLoginLink.setOnClickListener(this);
+
     }
 
-    public void signup() throws IOException {
-        Log.d(TAG, "Signup");
+    // Action to perform when clicking the "Create Account" Button or the "link to Login" TextView
+    @Override
+    public void onClick(View v)
+    {
+        if (v == buttonCreateAccount)
+        {
+            // Create the Account
+            this.createAccount();
+        }
+        else if (v == textViewLoginLink)
+        {
+            // Close current Activity
+            finish();
 
-        if (!validate()) {
-            onSignupFailed();
-            return;
+            // Jump to Main Activity
+            startActivity(new Intent(this, MainActivity.class));
+        }
+    }
+
+    // The purpose of this function is to perform the logic of creating an account
+    private void createAccount()
+    {
+        // Getting user input
+        String name     = this.editTextName.getText().toString().trim();
+        String email    = this.editTextEmail.getText().toString().trim();
+        String password = this.edittextPassword.getText().toString().trim();
+
+        // Validating that all information was provided
+        if (this.isAllInfoProvided(name,email,password))
+        {
+            // Displaying message and showing the progress dialog
+            progressDialog.setMessage("Creating Account ...");
+            progressDialog.show();
+
+            // Firebase code for creating user
+            firebaseAuth.createUserWithEmailAndPassword(email,password)
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
+                    {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task)
+                        {
+                            // Stop the progress dialog
+                            progressDialog.dismiss();
+
+                            // Determine if task was completed successfully
+                            if(task.isSuccessful())
+                            {
+                                // Finish current activity
+                                finish();
+
+                                // Jump to Selection activity
+                                startActivity(new Intent(getApplicationContext(), homePage.class));
+                            }
+                            else
+                            {
+                                // Notifying the user that registration was NOT successful
+                                Toast.makeText(SignupActivity.this, "Unable to Create Account. Try Again", Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
+                    });
+        }
+    }
+
+    // Validating that information was provided to all input fields
+    private boolean isAllInfoProvided(String name, String email, String password)
+    {
+        if (TextUtils.isEmpty(name))
+        {
+            // Notify user the "Name" field is empty
+            Toast.makeText(this, "Please enter a name", Toast.LENGTH_SHORT).show();
+
+            return false;
+        }
+        else if (TextUtils.isEmpty(email))
+        {
+            // Notify user the "Email" field is empty
+            Toast.makeText(this, "Please enter an email", Toast.LENGTH_SHORT).show();
+
+            return false;
+        }
+        else if (TextUtils.isEmpty(password))
+        {
+            // Notify user the "Password" field is empty
+            Toast.makeText(this, "Please enter a Password", Toast.LENGTH_SHORT).show();
+
+            return false;
         }
 
-        _signupButton.setEnabled(false);
-
-        final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this,
-                R.style.AppTheme);
-        progressDialog.setIndeterminate(true);
-        progressDialog.setMessage("Creating Account...");
-        progressDialog.show();
-
-        String name = _nameText.getText().toString();
-        //String email = _emailText.getText().toString();
-        String password = _passwordText.getText().toString();
-
-        // TODO: Implement your own signup logic here.
-        FileOutputStream fOut = openFileOutput("credentials.txt", MODE_WORLD_READABLE);
-        OutputStreamWriter osw = new OutputStreamWriter(fOut);
-
-        // Write the string to the file
-        osw.write(name + " " + password+"\n");
-
-       /* ensure that everything is
-        * really written out and close */
-        osw.flush();
-        osw.close();
-
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        onSignupSuccess();
-                        // onSignupFailed();
-                        progressDialog.dismiss();
-                    }
-                }, 3000);
+        return true;
     }
 
-
-    public void onSignupSuccess() {
-        _signupButton.setEnabled(true);
-        setResult(RESULT_OK, null);
-        finish();
-    }
-
-    public void onSignupFailed() {
-        Toast.makeText(getBaseContext(), "Login failed", Toast.LENGTH_LONG).show();
-
-        _signupButton.setEnabled(true);
-    }
-
-    public boolean validate() {
-        boolean valid = true;
-
-        name = _nameText.getText().toString();
-        String email = _emailText.getText().toString();
-        password = _passwordText.getText().toString();
-
-        if (name.isEmpty() || name.length() < 3) {
-            _nameText.setError("at least 3 characters");
-            valid = false;
-        } else {
-            _nameText.setError(null);
-        }
-
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailText.setError("enter a valid email address");
-            valid = false;
-        } else {
-            _emailText.setError(null);
-        }
-
-        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-            _passwordText.setError("between 4 and 10 alphanumeric characters");
-            valid = false;
-        } else {
-            _passwordText.setError(null);
-        }
-
-        return valid;
-    }
-}
+} // End of Signup Activity
