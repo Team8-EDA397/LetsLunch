@@ -125,7 +125,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         databaseRestaurants = FirebaseDatabase.getInstance().getReference();
 
-        databaseRestaurants.child("Restaurants").addValueEventListener(new ValueEventListener() {
+        databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange (DataSnapshot dataSnapshot) {
 
