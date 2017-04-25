@@ -12,6 +12,7 @@ import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -58,6 +59,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
 
     ListView listViewGroups;
     List<Group> groupList;
+    List<aUser> usersList; // List of groups members for a given group
     String currentUser;
 
     String groupID;
@@ -75,6 +77,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         buttonLogOut        = (Button) findViewById(R.id.logoutButton);
         buttonCreateGroup   = (Button) findViewById(R.id.buttonCreateGroup);
         buttonJoinGroup     = (Button) findViewById(R.id.buttonJoinGroup);
+        listViewGroups = (ListView) findViewById(R.id.listViewGroups);
 
         // Setting listeners
         buttonLogOut.setOnClickListener(this);
@@ -91,17 +94,34 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
             startActivity(new Intent(this, MainActivity.class));
         }
 
-        // Getting the reference of artists node
+        // Getting the reference of groups node
         databaseGroups = FirebaseDatabase.getInstance().getReference();
 
         // Getting information about the current user
         currentUser = firebaseAuth.getCurrentUser().getUid();
 
-        listViewGroups = (ListView) findViewById(R.id.listViewGroups);
-
+        // Instantiating variables
         groupList = new ArrayList<>();
+        usersList = new ArrayList<>();
 
+        // Loading the groups the user belongs to
+        loadGroup();
 
+        // Clicking a row from the table view
+        listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+            {
+                // getting th group ID
+                groupID = groupList.get(position).getID();
+                Log.d("GROUP ID SELECTED", groupID);
+                // Get all users
+                loadUsers(position);
+            }
+        });
+    }
+
+/*
         listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
@@ -155,37 +175,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
             }});
 
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        databaseGroups.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange (DataSnapshot dataSnapshot) {
-                groupList.clear();
-                for(DataSnapshot groupsSnapshot : dataSnapshot.getChildren()){
-
-                    // if (groupsSnapshot.getValue().equals(firebaseAuth.getCurrentUser().getUid())){
-                    //    Group group = new Group(firebaseAuth.getCurrentUser().getUid(),"","","");
-                    //    groupList.add(group);
-
-                     Group group = groupsSnapshot.getValue(Group.class);
-                     groupList.add(group);
-                }
-
-                GroupList adapter = new GroupList(homePage.this,groupList);
-                listViewGroups.setAdapter(adapter);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-
+    */
 
     // Performing appropriate actions depending on what button is clicked
     @Override
@@ -266,6 +256,101 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         });
     }
 
+    public void loadGroup(){
+        databaseGroups.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange (DataSnapshot dataSnapshot) {
+                groupList.clear();
+                for(DataSnapshot groupsSnapshot : dataSnapshot.getChildren()){
 
+                    Group group = groupsSnapshot.getValue(Group.class);
+                    groupList.add(group);
+                }
+                GroupList adapter = new GroupList(homePage.this,groupList);
+                listViewGroups.setAdapter(adapter);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+    private void loadUsers(final int position)
+    {
+        Log.d("ID to be used = ", this.groupID);
+        databaseGroups.child("GroupsAndTheirMembers").child(this.groupID).addListenerForSingleValueEvent(new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot)
+            {
+                Log.d("Click", "Entre");
+                // Clearing the list
+                usersList.clear();
+                // Obtaining users and placing them on the list of users
+                for(DataSnapshot usersSnapshot : dataSnapshot.getChildren())
+                {
+                    aUser user = usersSnapshot.getValue(aUser.class);
+                    usersList.add(user);
+                }
+
+                // Print users
+                createAndShowAlert(position);
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError)
+            {
+            }
+        });
+    }
+    private String getAllUsers()
+    {
+        String users = "";
+        for(int i = 0 ; i< usersList.size(); i++)
+        {
+            users = users + usersList.get(i).getName() + " \n";
+        }
+        return users;
+    }
+    private void createAndShowAlert(int position)
+    {
+        AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
+        alert.setTitle("Lets Lunch ");
+        alert.setIcon(R.drawable.splash_img);
+        alert.setMessage("Group: "+groupList.get(position).getName()+
+                "\n"+"Id: "+groupList.get(position).getID()+
+                "\n"+"Location: "+groupList.get(position).getLocation()+
+                "\n"+"Time: "+groupList.get(position).getTime()+"\n"+
+                "\n"+"Users \n"+ getAllUsers()
+        );
+
+        alert.setNegativeButton(R.string.lunch_box,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        eatingStatus userStatus = eatingStatus.BRING_LUNCH;
+                        dialog.dismiss();
+                        userResponseToEating(userStatus.toString());
+                    }
+                });
+        alert.setPositiveButton(R.string.restaurant,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        eatingStatus userStatus = eatingStatus.EATING_AT_RESTAURANT;
+                        userResponseToEating(userStatus.toString());
+                        dialog.cancel();
+                    }
+                });
+        alert.setNeutralButton(R.string.neutral,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        eatingStatus userStatus = eatingStatus.NOT_ATTENDING;
+                        userResponseToEating(userStatus.toString());
+                        dialog.cancel();
+                    }
+                });
+        alert.show();
+    } // End of createAndShowAlert()
 
 } // End of class
