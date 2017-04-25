@@ -7,6 +7,8 @@ import com.google.android.gms.maps.model.LatLng;
  */
 
 public class Restaurant {
+
+
     private String name;
     private double latitude;
     private double longitude;
@@ -18,6 +20,8 @@ public class Restaurant {
         this.name = resName;
         this.id = resId;
     }
+
+    public Restaurant() { }
 
     public String getName() {
         return name;

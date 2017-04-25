@@ -123,9 +123,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         databaseRestaurants = FirebaseDatabase.getInstance().getReference();
 
-        databaseRestaurants.child("Add stuff here").addValueEventListener(new ValueEventListener() {
+        databaseRestaurants.child("Restaurants").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange (DataSnapshot dataSnapshot) {
+
 
                 //Loop through restaurants in Firebase
                 for(DataSnapshot restaurantSnapshot : dataSnapshot.getChildren()) {
@@ -135,6 +136,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Marker restaurantMarker = mMap.addMarker(new MarkerOptions()
                             .position(restaurant.getLatLng())
                             .title(restaurant.getName()));
+
                 }
             }
 
