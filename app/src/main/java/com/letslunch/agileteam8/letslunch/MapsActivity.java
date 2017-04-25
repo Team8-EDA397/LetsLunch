@@ -66,15 +66,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 }
 */
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -185,6 +190,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     // Showing InfoWindow on the GoogleMap
                     marker.showInfoWindow();
                 }
+            }
+        });
+
+        //Add location after long click.
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                final LatLng latLngCopy = latLng;
+                final double lat = latLng.latitude;
+                final double lng = latLng.longitude;
+
+                //add dialog to allow for adding locations
+                AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MapsActivity.this);
+                alertBuilder.setTitle("Add Location ");
+                alertBuilder.setMessage("Enter name of restaurant:");
+
+                //input stuuff
+                // Set up the input
+                final EditText input = new EditText(MapsActivity.this);
+                alertBuilder.setView(input);
+                final String resName = input.getText().toString();
+
+
+                alertBuilder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Marker m1 = mMap.addMarker(new MarkerOptions()
+                            .position(latLngCopy)
+                                .title(resName)
+                        );
+                        // User clicked OK button
+                    }
+                });
+                alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User cancelled the dialog
+                    }
+                });
+
+
+                AlertDialog dialog = alertBuilder.create();
+                dialog.show();
+
+
+
             }
         });
 
