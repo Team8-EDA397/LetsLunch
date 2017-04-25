@@ -11,14 +11,12 @@ public class Restaurant {
     private double latitude;
     private double longitude;
     private String id;
-    private LatLng latLng;
 
-    public Restaurant(String resId, String resName, double resLatitude, double resLongitude, LatLng resLatLng){
+    public Restaurant(String resId, String resName, double resLatitude, double resLongitude){
         this.latitude = resLatitude;
         this.longitude = resLongitude;
         this.name = resName;
         this.id = resId;
-        this.latLng = resLatLng;
     }
 
     public String getName() {

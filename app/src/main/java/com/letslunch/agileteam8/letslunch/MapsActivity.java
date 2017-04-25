@@ -71,6 +71,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
@@ -90,8 +91,19 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+
+    // Firebase variables
+    DatabaseReference databaseRestaurants;
 
     GoogleMap mMap;
     Marker campus;
@@ -108,6 +120,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         // Add a marker in Lindholmen (Gothenburg), Sweden,
         // and move the map's camera to the same location.
+
+        databaseRestaurants = FirebaseDatabase.getInstance().getReference();
+
+        databaseRestaurants.child("Add stuff here").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange (DataSnapshot dataSnapshot) {
+
+                //Loop through restaurants in Firebase
+                for(DataSnapshot restaurantSnapshot : dataSnapshot.getChildren()) {
+                    //Retrieve restaurant from Firebase
+                    Restaurant restaurant = restaurantSnapshot.getValue(Restaurant.class);
+                    //Put restaurant marker on the map
+                    Marker restaurantMarker = mMap.addMarker(new MarkerOptions()
+                            .position(restaurant.getLatLng())
+                            .title(restaurant.getName()));
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
         final LatLng lindholmen = new LatLng(LINDHOLMEN_LAT, LINDHOLMEN_LNG);
         campus = googleMap.addMarker(new MarkerOptions().position(lindholmen)
                 .title("Marker in Lindholmen"));
@@ -211,21 +247,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Set up the input
                 final EditText input = new EditText(MapsActivity.this);
                 alertBuilder.setView(input);
-                final String resName = input.getText().toString();
 
 
                 alertBuilder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        String resName = input.getText().toString();
+
                         Marker m1 = mMap.addMarker(new MarkerOptions()
                             .position(latLngCopy)
                                 .title(resName)
                         );
                         // User clicked OK button
+                        saveRestaurants(resName, lat, lng);
                     }
                 });
                 alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         // User cancelled the dialog
+                        dialog.cancel();
                     }
                 });
 
@@ -235,6 +274,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
+            }
+        });
+
+    }
+
+    // Method for saving the restaurant to the Firebase database.
+    private void saveRestaurants(String name, double latitude, double longitude) {
+
+        String createdRestaurantID  = this.databaseRestaurants.push().getKey();
+
+        Restaurant currentRestaurant = new Restaurant(createdRestaurantID, name, latitude, longitude);
+
+        this.databaseRestaurants.child("Restaurants").child(currentRestaurant.getId()).setValue(currentRestaurant).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        {
+            @Override
+            public void onComplete(@NonNull Task<Void> task)
+            {
+
+                // Determine if task was completed successfully
+                if(!task.isSuccessful())
+                {
+                    // Notifying the user that saving was NOT successful
+                    Toast.makeText(MapsActivity.this, "Unable to save restaurant. Try Again", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
