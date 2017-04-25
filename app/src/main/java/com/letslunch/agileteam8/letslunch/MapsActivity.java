@@ -100,7 +100,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
 
     // Firebase variables
     DatabaseReference databaseRestaurants;
@@ -120,6 +120,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
+        mMap.setOnMarkerClickListener(MapsActivity.this);
         // Add a marker in Lindholmen (Gothenburg), Sweden,
         // and move the map's camera to the same location.
 
@@ -191,7 +192,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 TextView person2 = (TextView) v.findViewById(R.id.person2);
 
                 // Setting the restaurant
-                restName.setText("Restaurant L's Kitchen");
+                restName.setText(arg0.getTitle());
 
                 // Setting the people
                 people.setText("People coming:"+ " 2");
@@ -334,5 +335,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Intent select = new Intent(MapsActivity.this, SelectionActivity.class);
             startActivity(select);
         }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        System.out.println("*****HEJ******" + marker.getTitle());
+        return true;
     }
 }
