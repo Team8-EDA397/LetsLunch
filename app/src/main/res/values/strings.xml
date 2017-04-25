@@ -14,4 +14,6 @@
     <string name="OK">ok</string>
     <string name="restaurant">Buy lunch</string>
     <string name="neutral">Not attend</string>
+    <string name="addLocation">Add Location</string>
+
 </resources>

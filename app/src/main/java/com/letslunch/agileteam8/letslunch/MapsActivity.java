@@ -66,15 +66,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 }
 */
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -185,6 +189,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     // Showing InfoWindow on the GoogleMap
                     marker.showInfoWindow();
                 }
+            }
+        });
+
+        //Add location after long click.
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                //add dialog to allow for adding locations
+                AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MapsActivity.this);
+                alertBuilder.setTitle("Add Location ");
+                alertBuilder.setMessage("Hej");
+
+                alertBuilder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User clicked OK button
+                    }
+                });
+                alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // User cancelled the dialog
+                    }
+                });
+
+
+                AlertDialog dialog = alertBuilder.create();
+                dialog.show();
+
+
+
             }
         });
 
