@@ -337,9 +337,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    //method that defines what happens when clicking a marker
     @Override
     public boolean onMarkerClick(Marker marker) {
-        System.out.println("*****HEJ******" + marker.getTitle());
+        //TODO: implement showing a button that allows you to say you are going to that place
+        marker.showInfoWindow();
         return true;
     }
 }
