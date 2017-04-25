@@ -77,6 +77,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -197,13 +198,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapLongClick(LatLng latLng) {
 
+                final LatLng latLngCopy = latLng;
+                final double lat = latLng.latitude;
+                final double lng = latLng.longitude;
+
                 //add dialog to allow for adding locations
                 AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MapsActivity.this);
                 alertBuilder.setTitle("Add Location ");
-                alertBuilder.setMessage("Hej");
+                alertBuilder.setMessage("Enter name of restaurant:");
+
+                //input stuuff
+                // Set up the input
+                final EditText input = new EditText(MapsActivity.this);
+                alertBuilder.setView(input);
+                final String resName = input.getText().toString();
+
 
                 alertBuilder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
+                        Marker m1 = mMap.addMarker(new MarkerOptions()
+                            .position(latLngCopy)
+                                .title(resName)
+                        );
                         // User clicked OK button
                     }
                 });
