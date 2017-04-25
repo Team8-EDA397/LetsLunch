@@ -105,6 +105,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // Firebase variables
     DatabaseReference databaseRestaurants;
 
+    String groupID;
+
     GoogleMap mMap;
     Marker campus;
     private static final double
@@ -287,8 +289,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String createdRestaurantID  = this.databaseRestaurants.push().getKey();
 
         Restaurant currentRestaurant = new Restaurant(createdRestaurantID, name, latitude, longitude);
-
-        this.databaseRestaurants.child("Restaurants").child(currentRestaurant.getId()).setValue(currentRestaurant).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        System.out.println("******************************************************" + groupID);
+        this.databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).child(currentRestaurant.getId()).setValue(currentRestaurant).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
@@ -309,6 +311,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        groupID = getIntent().getStringExtra("GROUP_ID");
 
         // Getting reference to the SupportMapFragment of activity_main.xml
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);

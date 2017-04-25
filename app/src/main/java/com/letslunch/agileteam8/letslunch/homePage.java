@@ -159,7 +159,9 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     }
 
     private void startMap() {
-        startActivity(new Intent(this, MapsActivity.class));
+        Intent intent = new Intent(homePage.this, MapsActivity.class);
+        intent.putExtra("GROUP_ID", this.groupID);
+        startActivity(intent);
     }
 
     @Override
