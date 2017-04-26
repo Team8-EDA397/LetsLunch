@@ -135,6 +135,8 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                                 eatingStatus userStatus = eatingStatus.EATING_AT_RESTAURANT;
                                 userResponseToEating(userStatus.toString());
                                 dialog.dismiss();
+                                startMap();
+
                             }
                         });
                 alert.setNeutralButton(R.string.neutral,
@@ -154,6 +156,12 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
 
             }});
 
+    }
+
+    private void startMap() {
+        Intent intent = new Intent(homePage.this, MapsActivity.class);
+        intent.putExtra("GROUP_ID", this.groupID);
+        startActivity(intent);
     }
 
     @Override
