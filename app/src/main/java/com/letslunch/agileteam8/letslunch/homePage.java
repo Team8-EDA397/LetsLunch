@@ -321,6 +321,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                         eatingStatus userStatus = eatingStatus.EATING_AT_RESTAURANT;
                         userResponseToEating(userStatus.toString());
                         dialog.cancel();
+                        startMap();
                     }
                 });
         alert.setNeutralButton(R.string.neutral,
