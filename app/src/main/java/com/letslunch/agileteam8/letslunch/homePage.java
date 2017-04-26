@@ -121,61 +121,43 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         });
     }
 
-/*
-        listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-                AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
-                alert.setTitle("Lets Lunch ");
-                alert.setIcon(R.drawable.splash_img);
-                groupID = groupList.get(position).getID();
-                alert.setMessage("Group: "+groupList.get(position).getName()+
-                        "\n"+"Id: "+groupList.get(position).getID()+
-                        "\n"+"Location: "+groupList.get(position).getLocation()+
-                        "\n"+"Time: "+groupList.get(position).getTime()
-                );
-
-                alert.setNegativeButton(R.string.lunch_box,
-                        new DialogInterface.OnClickListener() {
-
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                eatingStatus userStatus = eatingStatus.BRING_LUNCH;
-                                userResponseToEating(userStatus.toString());
-                                dialog.dismiss();
-                            }
-                        });
-                alert.setPositiveButton(R.string.restaurant,
-                        new DialogInterface.OnClickListener() {
-
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                                eatingStatus userStatus = eatingStatus.EATING_AT_RESTAURANT;
-                                userResponseToEating(userStatus.toString());
-                                dialog.dismiss();
-                            }
-                        });
-                alert.setNeutralButton(R.string.neutral,
-                        new DialogInterface.OnClickListener() {
-
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                                eatingStatus userStatus = eatingStatus.NOT_ATTENDING;
-                                userResponseToEating(userStatus.toString());
-                                dialog.dismiss();
-
-                            }
-                        });
-
-                alert.show();
-
-            }});
-
+    private void startMap() {
+        Intent intent = new Intent(homePage.this, MapsActivity.class);
+        intent.putExtra("GROUP_ID", this.groupID);
+        startActivity(intent);
     }
-    */
+
+//     @Override
+//     protected void onStart() {
+//         super.onStart();
+
+//         databaseGroups.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
+//             @Override
+//             public void onDataChange (DataSnapshot dataSnapshot) {
+//                 groupList.clear();
+//                 for(DataSnapshot groupsSnapshot : dataSnapshot.getChildren()){
+
+//                     // if (groupsSnapshot.getValue().equals(firebaseAuth.getCurrentUser().getUid())){
+//                     //    Group group = new Group(firebaseAuth.getCurrentUser().getUid(),"","","");
+//                     //    groupList.add(group);
+
+//                      Group group = groupsSnapshot.getValue(Group.class);
+//                      groupList.add(group);
+//                 }
+
+//                 GroupList adapter = new GroupList(homePage.this,groupList);
+//                 listViewGroups.setAdapter(adapter);
+//             }
+
+//             @Override
+//             public void onCancelled(DatabaseError databaseError) {
+
+//             }
+//         });
+//     }
+
+
+
 
     // Performing appropriate actions depending on what button is clicked
     @Override
