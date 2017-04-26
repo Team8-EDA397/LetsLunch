@@ -89,14 +89,13 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         String email    = this.editTextEmail.getText().toString().trim();
         String password = this.edittextPassword.getText().toString().trim();
 
-        // Displaying message and showing the progress dialog
-        progressDialog.setMessage("Creating Account ...");
-        progressDialog.show();
-
-
         // Validating that all information was provided
         if (this.isAllInfoProvided(name,email,password))
         {
+            // Displaying message and showing the progress dialog
+            progressDialog.setMessage("Creating Account ...");
+            progressDialog.show();
+
             // Firebase code for creating user
             firebaseAuth.createUserWithEmailAndPassword(email,password)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
