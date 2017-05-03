@@ -2,22 +2,18 @@ package com.letslunch.agileteam8.letslunch;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Vibrator;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.text.Html;
+import android.telephony.SmsManager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 import com.google.android.gms.tasks.Task;
@@ -31,6 +27,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,12 +56,14 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     FirebaseAuth firebaseAuth;
     DatabaseReference databaseGroups;
 
+    // Local variables
     ListView listViewGroups;
     List<Group> groupList;
     List<aUser> usersList; // List of groups members for a given group
     String currentUser;
-
     String groupID;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 0;
+    private String phoneNumberToSendSMS = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -293,6 +294,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         }
         return users;
     }
+
     private void createAndShowAlert(int position)
     {
         AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
@@ -324,16 +326,143 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                         startMap();
                     }
                 });
-        alert.setNeutralButton(R.string.neutral,
-                new DialogInterface.OnClickListener() {
+
+        alert.setNeutralButton(R.string.Invite,
+                new DialogInterface.OnClickListener()
+                {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        eatingStatus userStatus = eatingStatus.NOT_ATTENDING;
-                        userResponseToEating(userStatus.toString());
-                        dialog.cancel();
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        dialogForPhoneNumber();
                     }
                 });
+
         alert.show();
+
     } // End of createAndShowAlert()
+
+
+
+    // The purpose of this code is to display a dialog for requesting the phone number for sending the SMS text
+    private void dialogForPhoneNumber()
+    {
+        // Creating the dialog and setting title and splash image
+        AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
+        alert.setTitle("Enter Phone Number");
+        alert.setIcon(R.drawable.splash_img);
+
+        // Setting the Textfield for entering the phone number
+        final EditText userPhoneInput = new EditText(homePage.this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        userPhoneInput.setLayoutParams(lp);
+        alert.setView(userPhoneInput);
+
+        // Setting the Send button invitation
+        alert.setPositiveButton(R.string.Send_Invitation, new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        // Clearing the previous Phone Number
+                        phoneNumberToSendSMS = "";
+
+                        // Getting the new phone number
+                        phoneNumberToSendSMS = userPhoneInput.getText().toString();
+
+                        // Sending the SMS
+                        sendMessage();
+
+                    }
+                });
+
+
+        alert.show();
+    }
+
+    // The purpose of this function is to set the permissions for sending SMS
+    private void sendMessage()
+    {
+        // If no permission has been granted by the user
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
+        {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.SEND_SMS))
+            {
+
+            }
+            else
+            {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
+            }
+        }
+        else // Permission has been granted by the user
+        {
+            this.sendingMessageLogic();
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults)
+    {
+        switch (requestCode)
+        {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS:
+            {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    this.sendingMessageLogic();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+        }
+
+    }
+
+    // This is the logic involved for sending a text message
+    private void sendingMessageLogic()
+    {
+        if (this.phoneNumberIsInteger())
+        {
+            // Setting a message content
+            String messageToSet = "Join us with this code = "+ this.groupID;
+
+            // Creating a Manager
+            SmsManager smsManager = SmsManager.getDefault();
+
+            // Sending the Text
+            smsManager.sendTextMessage(this.phoneNumberToSendSMS, null, messageToSet, null, null);
+
+            // Letting the user know it was a success
+            Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Invalid Phone Number", Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    // Determining if the phone number provided is valie
+    private Boolean phoneNumberIsInteger()
+    {
+        try
+        {
+            Integer.parseInt(this.phoneNumberToSendSMS);
+        }
+        catch(Exception e)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+
 
 } // End of class

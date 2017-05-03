@@ -18,7 +18,7 @@ public class aUser
     public aUser(String aName)
     {
         this.name = aName;
-        this.eatingStatus = "No Status";
+        this.eatingStatus = "NOT_ATTENDING";
     }
 
     public aUser(String aName, String aStatus )
