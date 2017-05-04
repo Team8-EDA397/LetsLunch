@@ -39,11 +39,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     // Firebase variables
     DatabaseReference databaseRestaurants;
     FirebaseAuth firebaseAuth;
+    DatabaseReference dbResSelectionRef=null;
 
     View.OnClickListener goToRestListener = null;
     Button goToRestButton;
 
     String groupID;
+
+    String prevSelection=null;
 
     GoogleMap mMap;
     Marker campus;
@@ -64,20 +67,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         firebaseAuth = FirebaseAuth.getInstance();
         databaseRestaurants = FirebaseDatabase.getInstance().getReference();
+        dbResSelectionRef = databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid());
+        if(dbResSelectionRef!=null){
+            dbResSelectionRef.addValueEventListener(getSelectionListener());
+        }
 
-        /*
-        databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
 
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-*/
         databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange (DataSnapshot dataSnapshot) {
@@ -279,6 +274,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    public ValueEventListener getSelectionListener(){
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.getValue()!=null){
+                    prevSelection =(String)dataSnapshot.getValue();
+                };
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+    }
+
     //method that defines what happens when clicking a marker
     @Override
     public boolean onMarkerClick(final Marker marker) {
@@ -305,10 +317,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         goToRestButton.setVisibility(View.VISIBLE);
 
         goToRestListener = new View.OnClickListener() {
+            CharSequence text="";
             @Override
             public void onClick(View v) {
-                joinRestaurant(marker.getTag().toString());
+                if (marker.getTag()!=null) {
+                    joinRestaurant(marker.getTag().toString());
+                    text = "Joining Restaurant";
+
+                }
+                else {
+                    text = "failed to join restaurant try again ";
+                }
+                int duration = Toast.LENGTH_SHORT;
+                Context context = getApplicationContext();
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+
             }
+
+
         };
         goToRestButton.setOnClickListener(goToRestListener);
 
@@ -319,19 +346,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void joinRestaurant(String restId) {
 
-        /*
-        String previousRest = this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid()).child();
+        //adding default disp name because node value cant be null
+        String dispName = firebaseAuth.getCurrentUser().getDisplayName()==null? "missing-disp-name": firebaseAuth.getCurrentUser().getDisplayName();
 
-        if(previousRest!=null) {
-            this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid()).child(previousRest).removeValue();
+        String userId = firebaseAuth.getCurrentUser().getUid();
+
+        //
+        if(prevSelection==null){
+            // Add the user to the restaurant
+            this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
+            // Add the restaurant to the user
+            this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(userId).setValue(restId);
+
+            //Instantiate a listener incase user changes selection
+            dbResSelectionRef.addListenerForSingleValueEvent(getSelectionListener());
+
+        }else{
+            if(!prevSelection.equalsIgnoreCase(restId)) {
+                //remove old restaurant selection
+                this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(prevSelection).child(userId).setValue(null);
+                //Add user to a restaurant
+                this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
+                // Add the restaurant to the user
+                this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(userId).setValue(restId);
+                System.out.println("################### prev selection " + prevSelection + " new selection " + restId);
+            }
         }
-        */
 
 
-        // Add the user to the restaurant
-        this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(firebaseAuth.getCurrentUser().getUid()).setValue(firebaseAuth.getCurrentUser().getDisplayName());
 
-        // Add the restaurant to the user
-        this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid()).setValue(restId);
+
+
     }
 }
