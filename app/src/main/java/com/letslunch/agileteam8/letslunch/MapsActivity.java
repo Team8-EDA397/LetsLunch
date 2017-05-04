@@ -2,6 +2,7 @@ package com.letslunch.agileteam8.letslunch;
 
 
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -70,6 +71,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Marker restaurantMarker = mMap.addMarker(new MarkerOptions()
                             .position(restaurant.getLatLng())
                             .title(restaurant.getName()));
+                    if (restaurantMarker.getTag()==null) {
+                        restaurantMarker.setTag(restaurant.getId());
+                    }
 
                 }
             }
@@ -194,7 +198,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 .title(resName)
                         );
                         // User clicked OK button
-                        saveRestaurants(resName, lat, lng);
+                        saveRestaurants(resName, lat, lng, m1);
+
+
                     }
                 });
                 alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -216,9 +222,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     // Method for saving the restaurant to the Firebase database.
-    private void saveRestaurants(String name, double latitude, double longitude) {
+    private void saveRestaurants(String name, double latitude, double longitude, Marker m) {
 
         String createdRestaurantID  = this.databaseRestaurants.push().getKey();
+        m.setTag(createdRestaurantID);
 
         Restaurant currentRestaurant = new Restaurant(createdRestaurantID, name, latitude, longitude);
         System.out.println("******************************************************" + groupID);
@@ -273,6 +280,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(Marker marker) {
         //TODO: implement showing a button that allows you to say you are going to that place
         marker.showInfoWindow();
+
+        Context context = getApplicationContext();
+        CharSequence text ="";
+        if (marker.getTag()!=null) {
+
+
+
+             text = marker.getTag().toString();
+
+        }
+        else {
+            text = "tag not available";
+        }
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+
         return true;
     }
 }
