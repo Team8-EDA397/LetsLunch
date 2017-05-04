@@ -11,6 +11,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +27,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,6 +38,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     // Firebase variables
     DatabaseReference databaseRestaurants;
+    FirebaseAuth firebaseAuth;
+
+    View.OnClickListener goToRestListener = null;
+    Button goToRestButton;
 
     String groupID;
 
@@ -56,8 +62,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Add a marker in Lindholmen (Gothenburg), Sweden,
         // and move the map's camera to the same location.
 
+        firebaseAuth = FirebaseAuth.getInstance();
         databaseRestaurants = FirebaseDatabase.getInstance().getReference();
 
+        /*
+        databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+*/
         databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange (DataSnapshot dataSnapshot) {
@@ -261,7 +281,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //method that defines what happens when clicking a marker
     @Override
-    public boolean onMarkerClick(Marker marker) {
+    public boolean onMarkerClick(final Marker marker) {
         //TODO: implement showing a button that allows you to say you are going to that place
         marker.showInfoWindow();
         // Animating to the currently touched marker
@@ -281,6 +301,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();
 
+        goToRestButton = (Button) findViewById(R.id.button1);
+        goToRestButton.setVisibility(View.VISIBLE);
+
+        goToRestListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                joinRestaurant(marker.getTag().toString());
+            }
+        };
+        goToRestButton.setOnClickListener(goToRestListener);
+
+
+
         return true;
+    }
+
+    public void joinRestaurant(String restId) {
+
+        /*
+        String previousRest = this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid()).child();
+
+        if(previousRest!=null) {
+            this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid()).child(previousRest).removeValue();
+        }
+        */
+
+
+        // Add the user to the restaurant
+        this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(firebaseAuth.getCurrentUser().getUid()).setValue(firebaseAuth.getCurrentUser().getDisplayName());
+
+        // Add the restaurant to the user
+        this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid()).setValue(restId);
     }
 }
