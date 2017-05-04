@@ -1,81 +1,13 @@
 package com.letslunch.agileteam8.letslunch;
 
-/*
-import android.app.Dialog;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Bundle;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-
-import android.support.v7.app.AppCompatActivity;
-import android.view.Window;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
-
-    GoogleMap nMap;
-    Marker campus;
-    private static final double
-            LINDHOLMEN_LAT = 57.7067061,
-            LINDHOLMEN_LNG = 11.9330267,
-
-            JOHANNEBERG_LAT = 57.6890079,
-            JOHANNEBERG_LNG = 11.9726245;
-
-    // Include the OnCreate() method here too, as described above.
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // Retrieve the content view that renders the map.
-        setContentView(R.layout.activity_maps);
-
-        // Get the SupportMapFragment and request notification
-        // when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-
-        nMap = googleMap;
-        // Add a marker in Lindholmen (Gothenburg), Sweden,
-        // and move the map's camera to the same location.
-        LatLng lindholmen = new LatLng(LINDHOLMEN_LAT, LINDHOLMEN_LNG);
-        campus = nMap.addMarker(new MarkerOptions().position(lindholmen)
-                .title("Marker in Lindholmen"));
-
-        float zoomLevel = 14.00f; //This goes up to 21
-        //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lindholmen,zoomLevel));
-        nMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lindholmen, zoomLevel), 2000, null);
-
-        // Another possible location
-        /*
-        LatLng johanneberg = new LatLng(JOHANNEBERG_LAT, JOHANNEBERG_LNG);
-        googleMap.addMarker(new MarkerOptions().position(johanneberg)
-                .title("Marker in Johanneberg"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(johanneberg));
-
-    }
-}
-*/
-
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
@@ -93,7 +25,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
