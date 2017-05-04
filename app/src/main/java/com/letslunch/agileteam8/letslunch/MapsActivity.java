@@ -62,7 +62,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onDataChange (DataSnapshot dataSnapshot) {
 
-
                 //Loop through restaurants in Firebase
                 for(DataSnapshot restaurantSnapshot : dataSnapshot.getChildren()) {
                     //Retrieve restaurant from Firebase
@@ -84,6 +83,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+
+        //TODO change this to zoom to user location
         final LatLng lindholmen = new LatLng(LINDHOLMEN_LAT, LINDHOLMEN_LNG);
         campus = googleMap.addMarker(new MarkerOptions().position(lindholmen)
                 .title("Marker in Lindholmen"));
@@ -147,25 +148,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng arg0) {
 
-                if(arg0.equals(lindholmen)) {
-                    // Clears any existing markers from the GoogleMap
-                    mMap.clear();
 
-                    // Creating an instance of MarkerOptions to set position
-                    MarkerOptions markerOptions = new MarkerOptions();
 
-                    // Setting position on the MarkerOptions
-                    markerOptions.position(arg0);
-
-                    // Animating to the currently touched position
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(arg0));
-
-                    // Adding marker on the GoogleMap
-                    final Marker marker = mMap.addMarker(markerOptions);
-
-                    // Showing InfoWindow on the GoogleMap
-                    marker.showInfoWindow();
-                }
             }
         });
 
@@ -280,13 +264,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(Marker marker) {
         //TODO: implement showing a button that allows you to say you are going to that place
         marker.showInfoWindow();
+        // Animating to the currently touched marker
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
 
         Context context = getApplicationContext();
         CharSequence text ="";
         if (marker.getTag()!=null) {
-
-
-
              text = marker.getTag().toString();
 
         }
