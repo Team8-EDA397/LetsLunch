@@ -42,8 +42,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     FirebaseAuth firebaseAuth;
     DatabaseReference dbResSelectionRef=null;
 
-    View.OnClickListener goToRestListener = null;
-    Button goToRestButton;
+    View.OnClickListener eatHereListener = null;
+    Button eatHereButton;
 
     String groupID;
 
@@ -53,10 +53,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     Marker campus;
     private static final double
             LINDHOLMEN_LAT = 57.7067061,
-            LINDHOLMEN_LNG = 11.9330267,
+            LINDHOLMEN_LNG = 11.9330267;
 
-            JOHANNEBERG_LAT = 57.6890079,
-            JOHANNEBERG_LNG = 11.9726245;
 
 
 
@@ -172,8 +170,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng arg0) {
 
-
-
+                if(eatHereButton!=null) {
+                    eatHereButton.setVisibility(View.INVISIBLE);
+                }
             }
         });
 
@@ -289,7 +288,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot.getValue()!=null){
                     prevSelection =(String)dataSnapshot.getValue();
-                };
+                }
 
             }
 
@@ -330,31 +329,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Animating to the currently touched marker
         mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
 
-        Context context = getApplicationContext();
-        CharSequence text ="";
-        if (marker.getTag()!=null) {
-             text = marker.getTag().toString();
+        eatHereButton = (Button) findViewById(R.id.eatHereButton);
+        eatHereButton.setVisibility(View.VISIBLE);
 
-        }
-        else {
-            text = "tag not available";
-        }
-        int duration = Toast.LENGTH_SHORT;
-
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
-
-        goToRestButton = (Button) findViewById(R.id.button1);
-        goToRestButton.setVisibility(View.VISIBLE);
-
-        goToRestListener = new View.OnClickListener() {
+        eatHereListener = new View.OnClickListener() {
             CharSequence text="";
             @Override
             public void onClick(View v) {
                 if (marker.getTag()!=null) {
                     joinRestaurant(marker.getTag().toString());
                     text = "Joining Restaurant";
-
+                    eatHereButton.setVisibility(View.INVISIBLE);
                 }
                 else {
                     text = "failed to join restaurant try again ";
@@ -363,12 +348,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Context context = getApplicationContext();
                 Toast toast = Toast.makeText(context, text, duration);
                 toast.show();
-
             }
 
 
         };
-        goToRestButton.setOnClickListener(goToRestListener);
+        eatHereButton.setOnClickListener(eatHereListener);
 
 
 
