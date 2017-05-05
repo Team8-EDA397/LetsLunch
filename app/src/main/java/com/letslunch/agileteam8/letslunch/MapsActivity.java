@@ -78,17 +78,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onDataChange (DataSnapshot dataSnapshot) {
 
+
                 //Loop through restaurants in Firebase
                 for(DataSnapshot restaurantSnapshot : dataSnapshot.getChildren()) {
                     //Retrieve restaurant from Firebase
                     Restaurant restaurant = restaurantSnapshot.getValue(Restaurant.class);
+
                     //Put restaurant marker on the map
-                    Marker restaurantMarker = mMap.addMarker(new MarkerOptions()
+                    final Marker restaurantMarker = mMap.addMarker(new MarkerOptions()
                             .position(restaurant.getLatLng())
                             .title(restaurant.getName()));
                     if (restaurantMarker.getTag()==null) {
                         restaurantMarker.setTag(restaurant.getId());
                     }
+
+
+                    //attempr to retrieve from another node
+                    databaseRestaurants.child("RestaurantsAndTheirUsers")
+                            .child(restaurant.getId())
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot2) {
+                                    restaurantMarker.setSnippet(Long.toString(dataSnapshot2.getChildrenCount()));
+                                    System.out.println("*****SNIPPETTEST*** " + dataSnapshot2.getKey() +Long.toString(dataSnapshot2.getChildrenCount()));
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
 
                 }
             }
@@ -152,7 +171,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                 // Setting the people
-                people.setText("People coming:"+ 0);
+                people.setText("People coming:"+ arg0.getSnippet());
 
 
                 person1.setText("Pedro Gómez López");
@@ -308,10 +327,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //counts correctly but cannot update info window
-                View v = getLayoutInflater().inflate(R.layout.windowinfo, null);
-                TextView people = (TextView) v.findViewById(R.id.people);
+
                 String nrPeople = Long.toString(dataSnapshot.getChildrenCount() );
-                people.setText("Fun people:"+  nrPeople);
+                marker.setSnippet(nrPeople);
+
                 if (marker != null && marker.isInfoWindowShown()) {
                     marker.hideInfoWindow();
                     marker.showInfoWindow();
