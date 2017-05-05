@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -56,6 +57,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             JOHANNEBERG_LAT = 57.6890079,
             JOHANNEBERG_LNG = 11.9726245;
+
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -143,10 +146,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 TextView person2 = (TextView) v.findViewById(R.id.person2);
 
                 // Setting the restaurant
-                restName.setText(arg0.getTitle());
+                String restaurant = arg0.getTitle();
+                restName.setText(restaurant);
+
+                //Getting the number of people (child nodes in restaurants and their user)
+                //can it be done here?
+
 
                 // Setting the people
-                people.setText("People coming:"+ " 2");
+                people.setText("People coming:"+ 0);
+
 
                 person1.setText("Pedro Gómez López");
                 person2.setText("Rami Salem");
@@ -294,8 +303,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //method that defines what happens when clicking a marker
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        //TODO: implement showing a button that allows you to say you are going to that place
+        String restId = marker.getTag().toString();
         marker.showInfoWindow();
+        databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //counts correctly but cannot update info window
+                View v = getLayoutInflater().inflate(R.layout.windowinfo, null);
+                TextView people = (TextView) v.findViewById(R.id.people);
+                String nrPeople = Long.toString(dataSnapshot.getChildrenCount() );
+                people.setText("Fun people:"+  nrPeople);
+                if (marker != null && marker.isInfoWindowShown()) {
+                    marker.hideInfoWindow();
+                    marker.showInfoWindow();
+                }
+                System.out.println("################### people going: " + Long.toString(dataSnapshot.getChildrenCount()));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
         // Animating to the currently touched marker
         mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
 
@@ -378,4 +409,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
+
 }
