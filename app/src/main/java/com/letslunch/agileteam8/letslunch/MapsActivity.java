@@ -100,7 +100,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     restaurantMarker.setSnippet(Long.toString(dataSnapshot2.getChildrenCount()));
 
                                     for (DataSnapshot userSnap : dataSnapshot2.getChildren()) {
-                                        restaurantMarker.setSnippet(restaurantMarker.getSnippet() + ", " + userSnap.getValue());
+                                        restaurantMarker.setSnippet(restaurantMarker.getSnippet() + "," + userSnap.getValue());
                                     }
                                 }
 
@@ -154,9 +154,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Getting reference to the TextView to set longitude
                 TextView people = (TextView) v.findViewById(R.id.people);
 
-                //People names
-                TextView person1 = (TextView) v.findViewById(R.id.person1);
-                TextView person2 = (TextView) v.findViewById(R.id.person2);
+
+
+
 
                 // Setting the restaurant
                 String restaurant = arg0.getTitle();
@@ -170,18 +170,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //change to get values from snippet string
 
+                //People names
+                TextView person1 = (TextView) v.findViewById(R.id.person1);
 
 
+                //CHANGE!!!
+                CharSequence text = "";
                 for (int i=1; i< info.length; i++ ) {
-
-
-                    if (i==1) {
-                        person1.setText(info[i]);
+                    if ( person1.getText()!=null) {
+                        text=person1.getText();
                     }
-                    if (i==2) {
-                        person2.setText(info[i]);
+                    if (i+1!=info.length) {
+                        person1.setText(text + info[i] + "\n");
                     }
-                    
+                    else {
+                        person1.setText(text + info[i]);
+                    }
 
                 }
 
@@ -347,7 +351,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                 for (DataSnapshot userSnap : dataSnapshot2.getChildren()) {
 
-                                    marker.setSnippet(marker.getSnippet() + ", " + userSnap.getValue());
+                                    marker.setSnippet(marker.getSnippet() + "," + userSnap.getValue());
                                 }
 
                                 //refresh infowindow with new info
