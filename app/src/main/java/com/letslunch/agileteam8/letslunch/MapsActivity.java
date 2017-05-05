@@ -28,7 +28,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -57,7 +56,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
@@ -65,6 +63,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMarkerClickListener(MapsActivity.this);
         // Add a marker in Lindholmen (Gothenburg), Sweden,
         // and move the map's camera to the same location.
+
 
         firebaseAuth = FirebaseAuth.getInstance();
         databaseRestaurants = FirebaseDatabase.getInstance().getReference();
@@ -92,15 +91,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         restaurantMarker.setTag(restaurant.getId());
                     }
 
-
-                    //attempr to retrieve from another node
+                    //attempr to retrieve users at the restaurant
                     databaseRestaurants.child("RestaurantsAndTheirUsers")
                             .child(restaurant.getId())
                             .addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot2) {
                                     restaurantMarker.setSnippet(Long.toString(dataSnapshot2.getChildrenCount()));
-                                    System.out.println("*****SNIPPETTEST*** " + dataSnapshot2.getKey() +Long.toString(dataSnapshot2.getChildrenCount()));
+
+                                    for (DataSnapshot userSnap : dataSnapshot2.getChildren()) {
+                                        restaurantMarker.setSnippet(restaurantMarker.getSnippet() + ", " + userSnap.getValue());
+                                    }
                                 }
 
                                 @Override
@@ -128,13 +129,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lindholmen,zoomLevel));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lindholmen, zoomLevel), 2000, null);
 
-        // Another possible location
-        /*
-        LatLng johanneberg = new LatLng(JOHANNEBERG_LAT, JOHANNEBERG_LNG);
-        googleMap.addMarker(new MarkerOptions().position(johanneberg)
-                .title("Marker in Johanneberg"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(johanneberg));
-        */
 
         // Setting a custom info window adapter for the google map
         mMap.setInfoWindowAdapter(new InfoWindowAdapter() {
@@ -166,16 +160,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String restaurant = arg0.getTitle();
                 restName.setText(restaurant);
 
-                //Getting the number of people (child nodes in restaurants and their user)
-                //can it be done here?
-
 
                 // Setting the people
                 people.setText("People coming:"+ arg0.getSnippet());
 
-
-                person1.setText("Pedro Gómez López");
-                person2.setText("Rami Salem");
+                //change to get values from snippet string
+                person1.setText("");
+                person2.setText("");
 
                 // Returning the view containing InfoWindow contents
                 return v;
@@ -209,7 +200,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 alertBuilder.setTitle("Add Location ");
                 alertBuilder.setMessage("Enter name of restaurant:");
 
-                //input stuuff
                 // Set up the input
                 final EditText input = new EditText(MapsActivity.this);
                 alertBuilder.setView(input);
@@ -226,7 +216,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         // User clicked OK button
                         saveRestaurants(resName, lat, lng, m1);
 
-
                     }
                 });
                 alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -236,11 +225,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 });
 
-
                 AlertDialog dialog = alertBuilder.create();
                 dialog.show();
-
-
 
             }
         });
@@ -254,7 +240,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         m.setTag(createdRestaurantID);
 
         Restaurant currentRestaurant = new Restaurant(createdRestaurantID, name, latitude, longitude);
-        System.out.println("******************************************************" + groupID);
         this.databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).child(currentRestaurant.getId()).setValue(currentRestaurant).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
@@ -308,7 +293,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if(dataSnapshot.getValue()!=null){
                     prevSelection =(String)dataSnapshot.getValue();
                 }
-
             }
 
             @Override
@@ -321,21 +305,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //method that defines what happens when clicking a marker
     @Override
     public boolean onMarkerClick(final Marker marker) {
-        String restId = marker.getTag().toString();
+        final String restId = marker.getTag().toString();
         marker.showInfoWindow();
         databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                //counts correctly but cannot update info window
 
-                String nrPeople = Long.toString(dataSnapshot.getChildrenCount() );
-                marker.setSnippet(nrPeople);
 
-                if (marker != null && marker.isInfoWindowShown()) {
-                    marker.hideInfoWindow();
-                    marker.showInfoWindow();
-                }
-                System.out.println("################### people going: " + Long.toString(dataSnapshot.getChildrenCount()));
+                //Retrieve users at the restaurant
+                databaseRestaurants.child("RestaurantsAndTheirUsers")
+                        .child(restId)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot2) {
+                                marker.setSnippet(Long.toString(dataSnapshot2.getChildrenCount()));
+
+
+                                for (DataSnapshot userSnap : dataSnapshot2.getChildren()) {
+
+                                    marker.setSnippet(marker.getSnippet() + ", " + userSnap.getValue());
+                                }
+
+                                //refresh infowindow with new info
+                                if (marker != null && marker.isInfoWindowShown()) {
+                                    marker.hideInfoWindow();
+                                    marker.showInfoWindow();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+
             }
 
             @Override
@@ -368,7 +371,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast toast = Toast.makeText(context, text, duration);
                 toast.show();
             }
-
 
         };
         eatHereButton.setOnClickListener(eatHereListener);
@@ -403,7 +405,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
                 // Add the restaurant to the user
                 this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(userId).setValue(restId);
-                System.out.println("################### prev selection " + prevSelection + " new selection " + restId);
+
             }
         }
 
