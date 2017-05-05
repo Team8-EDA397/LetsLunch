@@ -122,9 +122,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //TODO change this to zoom to user location
         final LatLng lindholmen = new LatLng(LINDHOLMEN_LAT, LINDHOLMEN_LNG);
+
+        /*
         campus = googleMap.addMarker(new MarkerOptions().position(lindholmen)
                 .title("Marker in Lindholmen"));
-
+*/
         float zoomLevel = 14.00f; //This goes up to 21
         //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lindholmen,zoomLevel));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lindholmen, zoomLevel), 2000, null);
@@ -160,13 +162,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String restaurant = arg0.getTitle();
                 restName.setText(restaurant);
 
+                String[] info = arg0.getSnippet().split(",");
+
 
                 // Setting the people
-                people.setText("People coming:"+ arg0.getSnippet());
+                people.setText("People coming:"+ info[0]);
 
                 //change to get values from snippet string
-                person1.setText("");
-                person2.setText("");
+
+
+
+                for (int i=1; i< info.length; i++ ) {
+
+
+                    if (i==1) {
+                        person1.setText(info[i]);
+                    }
+                    if (i==2) {
+                        person2.setText(info[i]);
+                    }
+                    
+
+                }
+
+
+
+
+
+
+
 
                 // Returning the view containing InfoWindow contents
                 return v;
