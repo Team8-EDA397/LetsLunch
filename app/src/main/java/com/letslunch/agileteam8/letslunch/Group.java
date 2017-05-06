@@ -42,4 +42,8 @@ public class Group
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
 } // End of class
