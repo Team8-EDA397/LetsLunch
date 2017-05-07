@@ -21,6 +21,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -76,13 +80,11 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
             String location     = this.editTextMeetingLocation.getText().toString().trim();
             String time         = this.editTextLunchTime.getText().toString().trim();
 
-            int MAX_GROUP_CODE = 9999;
-            int MIN_GROUP_CODE = 1000;
 
             if (this.isAllInfoAvailable(groupName,location,time))
             {
                 // Created a group ID
-                 String createdGroupID  = groupName.trim()+"-"+String.valueOf(ThreadLocalRandom.current().nextInt(MIN_GROUP_CODE, MAX_GROUP_CODE + 1));
+                 String createdGroupID  = generateId(groupName);
 
                 //uncomment below for testing same id
                 //String createdGroupID = "testfail-1895";
@@ -95,6 +97,28 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
 
             }
         }
+    }
+
+    private String generateId(String groupName){
+        int MAX_GROUP_CODE = 9999;
+        int MIN_GROUP_CODE = 1000;
+        int MAX_GROUP_NAME_SIZE = 10;
+
+        //remove aschii control characters
+        String newGroupName = groupName.replaceAll("[\u0000-\u001f]", "");
+
+        Set<Character> illegalChar = new HashSet<Character>(Arrays.asList('.', '$', '#', '[',']', '/',' '));
+
+        //String Buffer for the result
+        StringBuffer result = new StringBuffer();
+        for(char c : newGroupName.toCharArray()){
+            if (result.length()<= MAX_GROUP_NAME_SIZE && !illegalChar.contains(c)){
+                result.append(c);
+            }
+        }
+
+        //merge checked string with random group code
+        return result.toString()+"-"+String.valueOf(ThreadLocalRandom.current().nextInt(MIN_GROUP_CODE, MAX_GROUP_CODE + 1));
     }
 
 
