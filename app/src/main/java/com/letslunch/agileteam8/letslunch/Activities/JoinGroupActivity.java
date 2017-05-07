@@ -1,4 +1,4 @@
-package com.letslunch.agileteam8.letslunch;
+package com.letslunch.agileteam8.letslunch.Activities;
 
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -18,9 +18,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.letslunch.agileteam8.letslunch.Group;
+import com.letslunch.agileteam8.letslunch.R;
+import com.letslunch.agileteam8.letslunch.User;
 
 
-public class joinGroup extends AppCompatActivity implements View.OnClickListener
+public class JoinGroupActivity extends AppCompatActivity implements View.OnClickListener
 {
     // Global variables
     private String groupCode = null;
@@ -76,8 +79,8 @@ public class joinGroup extends AppCompatActivity implements View.OnClickListener
         // A firebase user object
         FirebaseUser user = firebaseAuth.getCurrentUser();
 
-        // Create aUser object
-        aUser myUser = new aUser(user.getDisplayName());
+        // Create User object
+        User myUser = new User(user.getDisplayName());
 
         //Firebase logic for creating group
         this.databaseReference.child("GroupsAndTheirMembers").child(groupCode).child(user.getUid()).setValue(myUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
@@ -89,7 +92,7 @@ public class joinGroup extends AppCompatActivity implements View.OnClickListener
                 if(!task.isSuccessful())
                 {
                     // Notifying the user that saving was NOT successful
-                    Toast.makeText(joinGroup.this, "Unable to add you to the created group. Try Manually.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(JoinGroupActivity.this, "Unable to add you to the created group. Try Manually.", Toast.LENGTH_SHORT).show();
 
                 }
             }
@@ -110,7 +113,7 @@ public class joinGroup extends AppCompatActivity implements View.OnClickListener
                 if(!task.isSuccessful())
                 {
                     // Notifying the user that saving was NOT successful
-                    Toast.makeText(joinGroup.this, "Unable to add assign a group to you.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(JoinGroupActivity.this, "Unable to add assign a group to you.", Toast.LENGTH_SHORT).show();
 
                 }
             }
@@ -150,14 +153,14 @@ public class joinGroup extends AppCompatActivity implements View.OnClickListener
                 }
                 else
                 {
-                    Toast.makeText(joinGroup.this, "Invalid Code: No group found.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(JoinGroupActivity.this, "Invalid Code: No group found.", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) // Problem occurred extracting values
             {
-                Toast.makeText(joinGroup.this, "Unable to add you to the group. Try later.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(JoinGroupActivity.this, "Unable to add you to the group. Try later.", Toast.LENGTH_SHORT).show();
             }
         };
 

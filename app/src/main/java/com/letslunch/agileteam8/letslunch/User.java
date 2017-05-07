@@ -4,24 +4,24 @@ package com.letslunch.agileteam8.letslunch;
 // for Firebase purposes
 
 
-public class aUser
+public class User
 {
     private String name;
     private String eatingStatus;
 
     // Default constructor
-    public aUser()
+    public User()
     {
 
     }
 
-    public aUser(String aName)
+    public User(String aName)
     {
         this.name = aName;
         this.eatingStatus = "No Status";
     }
 
-    public aUser(String aName, String aStatus )
+    public User(String aName, String aStatus )
     {
         this.name           = aName;
         this.eatingStatus   = aStatus;

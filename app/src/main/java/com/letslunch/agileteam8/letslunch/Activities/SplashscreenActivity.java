@@ -1,4 +1,4 @@
-package com.letslunch.agileteam8.letslunch;
+package com.letslunch.agileteam8.letslunch.Activities;
 
 /**
  * Created by pedrogomezlopez on 2/4/17.
@@ -7,14 +7,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-    public class Splashscreen extends Activity {
+import com.letslunch.agileteam8.letslunch.R;
+
+public class SplashscreenActivity extends Activity {
         public void onAttachedToWindow() {
             super.onAttachedToWindow();
             Window window = getWindow();
@@ -51,15 +52,15 @@ import android.widget.LinearLayout;
                             sleep(100);
                             waited += 100;
                         }
-                        Intent intent = new Intent(Splashscreen.this,
+                        Intent intent = new Intent(SplashscreenActivity.this,
                                 MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
                         startActivity(intent);
-                        Splashscreen.this.finish();
+                        SplashscreenActivity.this.finish();
                     } catch (InterruptedException e) {
                         // do nothing
                     } finally {
-                        Splashscreen.this.finish();
+                        SplashscreenActivity.this.finish();
                     }
 
                 }
