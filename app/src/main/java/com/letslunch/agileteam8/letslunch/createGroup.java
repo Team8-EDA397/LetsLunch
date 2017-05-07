@@ -103,9 +103,12 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
         int MAX_GROUP_CODE = 9999;
         int MIN_GROUP_CODE = 1000;
         int MAX_GROUP_NAME_SIZE = 10;
+        String newGroupName="";
 
-        //remove aschii control characters
-        String newGroupName = groupName.replaceAll("[\u0000-\u001f]", "");
+        //peform null check remove aschii control characters
+        if(groupName!=null){
+            newGroupName= groupName.replaceAll("[\u0000-\u001f]", "");
+        }
 
         Set<Character> illegalChar = new HashSet<Character>(Arrays.asList('.', '$', '#', '[',']', '/',' '));
 
