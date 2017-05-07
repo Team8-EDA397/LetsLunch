@@ -1,22 +1,13 @@
-package com.letslunch.agileteam8.letslunch;
+package com.letslunch.agileteam8.letslunch.Activities;
 
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Vibrator;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -25,20 +16,22 @@ import android.support.annotation.NonNull;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.letslunch.agileteam8.letslunch.Group;
+import com.letslunch.agileteam8.letslunch.GroupList;
+import com.letslunch.agileteam8.letslunch.R;
+import com.letslunch.agileteam8.letslunch.User;
+import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
+import com.letslunch.agileteam8.letslunch.Utils.DatabaseHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.letslunch.agileteam8.letslunch.R.id.icon_group;
-import static com.letslunch.agileteam8.letslunch.R.id.parent;
-
-public class homePage extends AppCompatActivity implements View.OnClickListener
+public class HomePageActivity extends AppCompatActivity implements View.OnClickListener
 {
     // Creating an Enumeration for the possible eating status of a user.
     private enum eatingStatus
@@ -54,12 +47,10 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     private Button buttonJoinGroup;
 
     // Firebase variables
-    FirebaseAuth firebaseAuth;
-    DatabaseReference databaseGroups;
-
+    DBHandler database;
     ListView listViewGroups;
     List<Group> groupList;
-    List<aUser> usersList; // List of groups members for a given group
+    List<User> usersList; // List of groups members for a given group
     String currentUser;
 
     String groupID;
@@ -71,8 +62,8 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         setContentView(R.layout.activity_home_page);
 
         // Instantiation firebase variable
-        firebaseAuth    = FirebaseAuth.getInstance();
-
+        database = DBHandler.getInstance();
+        database.setActivity(this);
         // Instantiating widgets
         buttonLogOut        = (Button) findViewById(R.id.logoutButton);
         buttonCreateGroup   = (Button) findViewById(R.id.buttonCreateGroup);
@@ -85,7 +76,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         buttonJoinGroup.setOnClickListener(this);
 
         // Checking if the user is sign-in or not
-        if (!this.isUserAlreadySignedIn(firebaseAuth))
+        if (!database.isUserAlreadySignedIn())
         {
             // Finish current activity
             finish();
@@ -94,11 +85,9 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
             startActivity(new Intent(this, MainActivity.class));
         }
 
-        // Getting the reference of groups node
-        databaseGroups = FirebaseDatabase.getInstance().getReference();
 
         // Getting information about the current user
-        currentUser = firebaseAuth.getCurrentUser().getUid();
+        currentUser = database.getUser();
 
         // Instantiating variables
         groupList = new ArrayList<>();
@@ -114,6 +103,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
             {
                 // getting th group ID
                 groupID = groupList.get(position).getID();
+                database.setCurrentGroupID(groupID);
                 Log.d("GROUP ID SELECTED", groupID);
                 // Get all users
                 loadUsers(position);
@@ -122,7 +112,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     }
 
     private void startMap() {
-        Intent intent = new Intent(homePage.this, MapsActivity.class);
+        Intent intent = new Intent(HomePageActivity.this, MapsActivity.class);
         intent.putExtra("GROUP_ID", this.groupID);
         startActivity(intent);
     }
@@ -145,7 +135,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
 //                      groupList.add(group);
 //                 }
 
-//                 GroupList adapter = new GroupList(homePage.this,groupList);
+//                 GroupList adapter = new GroupList(HomePageActivity.this,groupList);
 //                 listViewGroups.setAdapter(adapter);
 //             }
 
@@ -166,60 +156,35 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
         if (v == this.buttonLogOut)
         {
             // Sign the user out
-            this.signUserOut();
+            database.signUserOut();
         }
         else if (v == this.buttonCreateGroup)
         {
-            // Move to the createGroup activity
-            startActivity(new Intent(this, createGroup.class));
+            // Move to the CreateGroupActivity activity
+            startActivity(new Intent(this, CreateGroupActivity.class));
 
         }
         else if (v == this.buttonJoinGroup)
         {
-            // Move to the joinGroup activity
-            startActivity(new Intent(this, joinGroup.class));
+            // Move to the JoinGroupActivity activity
+            startActivity(new Intent(this, JoinGroupActivity.class));
         }
     }
-
-
-    // The purpose of this function is to determine if a user is already logged in to the app.
-    private boolean isUserAlreadySignedIn(FirebaseAuth firebaseObject)
-    {
-        if(firebaseObject.getCurrentUser() != null )
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    // The purpose of this function is to contain the logic necessary for signing out the user
-    private void signUserOut()
-    {
-        // Logout from Firebase
-        firebaseAuth.signOut();
-
-        // Finishing the current activity
-        finish();
-
-        // Jumping to the login activity
-        startActivity(new Intent(getApplicationContext(), MainActivity.class));
-    }
-
+/*
     // The purpose of this class is to update the eating status of the user for a given group
     private void userResponseToEating(String userStatus)
     {
         // Get a firebase user object
-        FirebaseUser user = firebaseAuth.getCurrentUser();
+        FirebaseUser user = database.getUser();
 
         // Get the display name of the user
         String userDisplayName  = user.getDisplayName();
 
-        // Create an aUser object
-        aUser updatedUser = new aUser(userDisplayName, userStatus);
+        // Create an User object
+        User updatedUser = new User(userDisplayName, userStatus);
 
-        // Update the current user eating status by storing the aUser object
-        databaseGroups.child("GroupsAndTheirMembers").child(this.groupID).child(user.getUid()).setValue(updatedUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        // Update the current user eating status by storing the User object
+        database.databaseReference.child("GroupsAndTheirMembers").child(this.groupID).child(user.getUid()).setValue(updatedUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
@@ -228,18 +193,18 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                 if(task.isSuccessful())
                 {
                     // Notifying the user that saving was NOT successful
-                    Toast.makeText(homePage.this, "Your status has been updated.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(HomePageActivity.this, "Your status has been updated.", Toast.LENGTH_SHORT).show();
                 }
                 else
                 {
-                    Toast.makeText(homePage.this, "Unable to let your friends know.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(HomePageActivity.this, "Unable to let your friends know.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
-
+*/
     public void loadGroup(){
-        databaseGroups.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
+        database.databaseReference.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange (DataSnapshot dataSnapshot) {
                 groupList.clear();
@@ -248,7 +213,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                     Group group = groupsSnapshot.getValue(Group.class);
                     groupList.add(group);
                 }
-                GroupList adapter = new GroupList(homePage.this,groupList);
+                GroupList adapter = new GroupList(HomePageActivity.this, groupList);
                 listViewGroups.setAdapter(adapter);
             }
             @Override
@@ -259,7 +224,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     private void loadUsers(final int position)
     {
         Log.d("ID to be used = ", this.groupID);
-        databaseGroups.child("GroupsAndTheirMembers").child(this.groupID).addListenerForSingleValueEvent(new ValueEventListener()
+        database.databaseReference.child("GroupsAndTheirMembers").child(this.groupID).addListenerForSingleValueEvent(new ValueEventListener()
         {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot)
@@ -270,7 +235,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                 // Obtaining users and placing them on the list of users
                 for(DataSnapshot usersSnapshot : dataSnapshot.getChildren())
                 {
-                    aUser user = usersSnapshot.getValue(aUser.class);
+                    User user = usersSnapshot.getValue(User.class);
                     usersList.add(user);
                 }
 
@@ -295,7 +260,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     }
     private void createAndShowAlert(int position)
     {
-        AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
+        AlertDialog.Builder alert = new AlertDialog.Builder(HomePageActivity.this);
         alert.setTitle("Lets Lunch ");
         alert.setIcon(R.drawable.splash_img);
         alert.setMessage("Group: "+groupList.get(position).getName()+
@@ -311,7 +276,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                     public void onClick(DialogInterface dialog, int which) {
                         eatingStatus userStatus = eatingStatus.BRING_LUNCH;
                         dialog.dismiss();
-                        userResponseToEating(userStatus.toString());
+                        database.userResponseToEating(userStatus.toString());
                     }
                 });
         alert.setPositiveButton(R.string.restaurant,
@@ -319,7 +284,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         eatingStatus userStatus = eatingStatus.EATING_AT_RESTAURANT;
-                        userResponseToEating(userStatus.toString());
+                        database.userResponseToEating(userStatus.toString());
                         dialog.cancel();
                         startMap();
                     }
@@ -329,7 +294,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         eatingStatus userStatus = eatingStatus.NOT_ATTENDING;
-                        userResponseToEating(userStatus.toString());
+                        database.userResponseToEating(userStatus.toString());
                         dialog.cancel();
                     }
                 });

@@ -9,6 +9,8 @@ package com.letslunch.agileteam8.letslunch;
  import android.text.TextUtils;
  import android.widget.Toast;
 
+ import com.letslunch.agileteam8.letslunch.Activities.SignupActivity;
+
  import org.mockito.stubbing.Answer;
  import org.powermock.api.mockito.PowerMockito;
  import org.powermock.core.classloader.annotations.PrepareForTest;

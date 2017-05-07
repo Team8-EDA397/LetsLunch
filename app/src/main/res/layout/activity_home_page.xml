@@ -6,7 +6,7 @@
     android:theme="@style/Theme.AppCompat"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.letslunch.agileteam8.letslunch.homePage">
+    tools:context="com.letslunch.agileteam8.letslunch.Activities.HomePageActivity">
 
     <Button
         android:id="@+id/buttonJoinGroup"

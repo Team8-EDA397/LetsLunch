@@ -9,7 +9,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.letslunch.agileteam8.letslunch.MainActivity"
+    tools:context="com.letslunch.agileteam8.letslunch.Activities.MainActivity"
     tools:showIn="@layout/main_activity">
 
     <!--<Button

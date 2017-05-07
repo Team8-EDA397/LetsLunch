@@ -1,7 +1,6 @@
-package com.letslunch.agileteam8.letslunch;
+package com.letslunch.agileteam8.letslunch.Activities;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -15,13 +14,15 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.letslunch.agileteam8.letslunch.Group;
+import com.letslunch.agileteam8.letslunch.R;
+import com.letslunch.agileteam8.letslunch.User;
+import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
 
 
-
-public class createGroup extends AppCompatActivity implements View.OnClickListener
+public class CreateGroupActivity extends AppCompatActivity implements View.OnClickListener
 {
     // Widget variables
     private EditText editTextGroupName;
@@ -31,8 +32,7 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
     private ProgressDialog myProgressDialog;
 
     // Firebase variables
-    private FirebaseAuth firebaseAuth;
-    private DatabaseReference databaseReference;
+    private DBHandler database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -48,8 +48,8 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
         myProgressDialog        = new ProgressDialog(this);
 
         // Initializing FirebaseAuth object
-        this.firebaseAuth = FirebaseAuth.getInstance();
-        this.databaseReference = FirebaseDatabase.getInstance().getReference();
+        database = DBHandler.getInstance();
+        database.setActivity(this);
 
         // Setting up listeners
         buttonCreateGroup.setOnClickListener(this);
@@ -70,19 +70,19 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
             if (this.isAllInfoAvailable(groupName,location,time))
             {
                 // Created a group ID
-                String createdGroupID  = this.databaseReference.push().getKey();
+                String createdGroupID  = database.databaseReference.push().getKey();
 
                 // creating a group object
-                Group createdGroup = new Group(groupName,location,time,createdGroupID);
+                Group createdGroup = new Group(groupName, location, time, createdGroupID);
 
                 // Create a node containing all information of the group
                 this.createGroup(createdGroup);
 
                 // Assign the creator of the group to the newly created group
-                this.addingGroupCreatorToHisGroup(createdGroup);
+                database.addingCurrentUserToGroup(createdGroup);
 
                 // Adding the group to his creator
-                this.addingGroupToOwner(createdGroup);
+                database.addingGroupToCurrentUser(createdGroup);
             }
         }
     }
@@ -95,13 +95,13 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
         myProgressDialog.show();
 
         //Firebase logic for creating group
-        this.databaseReference.child("Groups-Info").child(myGroup.getID()).setValue(myGroup).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        database.databaseReference.child("Groups-Info").child(myGroup.getID()).setValue(myGroup).addOnCompleteListener(this, new OnCompleteListener<Void>()
             {
                 @Override
                 public void onComplete(@NonNull Task<Void> task)
                 {
                     // Stop the progress dialog
-                    myProgressDialog.dismiss();
+                    //myProgressDialog.dismiss();
 
                     // Determine if task was completed successfully
                     if(task.isSuccessful())
@@ -113,61 +113,12 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
                     else
                     {
                         // Notifying the user that saving was NOT successful
-                        Toast.makeText(createGroup.this, "Unable to create group. Try Again", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CreateGroupActivity.this, "Unable to create group. Try Again", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
 
     }
-
-    // Adding the creator of the group to the group he created.
-    private void addingGroupCreatorToHisGroup(Group aGroup)
-    {
-        // A firebase user object
-        FirebaseUser user = firebaseAuth.getCurrentUser();
-
-        // Create aUser object
-        aUser myUser = new aUser(user.getDisplayName());
-
-        //Firebase logic for creating group
-        this.databaseReference.child("GroupsAndTheirMembers").child(aGroup.getID()).child(user.getUid()).setValue(myUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
-        {
-            @Override
-            public void onComplete(@NonNull Task<Void> task)
-            {
-                // Determine if task was completed successfully
-                if(!task.isSuccessful())
-                {
-                    // Notifying the user that saving was NOT successful
-                    Toast.makeText(createGroup.this, "Unable to add you to the created group. Try Manually.", Toast.LENGTH_SHORT).show();
-
-                }
-            }
-        });
-
-    }
-
-    // The purpose of this function is to assign to a given owner the groups he belongs to
-    private void addingGroupToOwner(Group createdGroup)
-    {
-        //Firebase logic for creating group
-        this.databaseReference.child("UserAndTheirGroups").child(firebaseAuth.getCurrentUser().getUid()).child(createdGroup.getID()).setValue(createdGroup).addOnCompleteListener(this, new OnCompleteListener<Void>()
-        {
-            @Override
-            public void onComplete(@NonNull Task<Void> task)
-            {
-
-                // Determine if task was completed successfully
-                if(!task.isSuccessful())
-                {
-                    // Notifying the user that saving was NOT successful
-                    Toast.makeText(createGroup.this, "Unable to add assign a group to you.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-    }
-
     // The purpose of this file is to verify that all information was provided by the user
     private Boolean isAllInfoAvailable(String groupName, String location, String time)
     {

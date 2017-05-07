@@ -1,6 +1,5 @@
-package com.letslunch.agileteam8.letslunch;
+package com.letslunch.agileteam8.letslunch.Activities;
 
-import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,10 +16,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.letslunch.agileteam8.letslunch.R;
+import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
 
 import android.content.Intent;
 import android.text.TextUtils;
@@ -34,8 +32,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
     private Button buttonCreateAccount;
     private TextView textViewLoginLink;
     private ProgressDialog progressDialog;
-    private FirebaseAuth firebaseAuth;
-    private DatabaseReference databaseReference;
+    private DBHandler database;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -43,9 +40,9 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // Initializing the FirebaseAuth Object
-        firebaseAuth = FirebaseAuth.getInstance();
-        this.databaseReference = FirebaseDatabase.getInstance().getReference();
+        // Fetches
+        database = DBHandler.getInstance();
+        database.setActivity(this);
 
         // Initializing the widgets
         editTextName        = (EditText) findViewById(R.id.input_name);
@@ -97,7 +94,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
             progressDialog.show();
 
             // Firebase code for creating user
-            firebaseAuth.createUserWithEmailAndPassword(email,password)
+            database.firebaseAuth.createUserWithEmailAndPassword(email,password)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
                     {
                         @Override
@@ -110,13 +107,13 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                             if(task.isSuccessful())
                             {
                                 // Set user display name in firebase
-                                setUserDisplayName(editTextName.getText().toString().trim());
+                                database.setUserDisplayName(editTextName.getText().toString().trim());
 
                                 // Finish current activity
                                 finish();
 
                                 // Jump to Selection activity
-                                startActivity(new Intent(getApplicationContext(), homePage.class));
+                                startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
                             }
                             else
                             {
@@ -155,13 +152,6 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
         }
 
         return true;
-    }
-
-    // The purpose of this function is to set the display name of the user
-    private void setUserDisplayName(String name)
-    {
-        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(name).build();
-        firebaseAuth.getCurrentUser().updateProfile(profileUpdates);
     }
 
 } // End of Signup Activity

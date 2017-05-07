@@ -1,4 +1,4 @@
-package com.letslunch.agileteam8.letslunch;
+package com.letslunch.agileteam8.letslunch.Activities;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Menu;
@@ -21,7 +20,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-
+import com.letslunch.agileteam8.letslunch.R;
+import com.letslunch.agileteam8.letslunch.ReminderReceiver;
+import com.letslunch.agileteam8.letslunch.Utils.DatabaseHandler;
+import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
     // Local Variables
@@ -30,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button buttonLogin;
     private TextView textViewcreateAccountLink;
     private ProgressDialog progressDialog;
-    private FirebaseAuth firebaseAuth;
+    private DBHandler database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -39,7 +41,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.main_activity);
 
         // Initializing FirebaseAuth object
-        firebaseAuth = FirebaseAuth.getInstance();
+        database= DBHandler.getInstance();
+        database.setActivity(this);
 
         // Initializing Widgets
         editTextemail               = (EditText) findViewById(R.id.user);
@@ -56,13 +59,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sendNotification();
 
         // Check if a user is already logged in
-        if (this.isUserAlreadySignedIn(firebaseAuth))
+        if (database.isUserAlreadySignedIn())
         {
             // Exit the current activity
             finish();
 
             // Jump to Home Activity
-            startActivity(new Intent(this, homePage.class));
+            startActivity(new Intent(this, HomePageActivity.class));
         }
     }
 
@@ -78,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         else if (v == textViewcreateAccountLink)
         {
             // Exit the current activity
-            finish();
+            //finish();
 
             // Jump to Create Account Activity
             startActivity(new Intent(this, SignupActivity.class));
@@ -94,14 +97,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String password = this.editTextpassword.getText().toString().trim();
 
         // Verifying that all email and password were provided
-        if (this.isAllInfoProvided(email,password))
+        if (database.signInValid(email,password))
         {
             // Displaying message and showing the progress dialog
             progressDialog.setMessage("Signing User ...");
             progressDialog.show();
 
             // Firebase logic for Signing in user
-            this.firebaseAuth.signInWithEmailAndPassword(email, password)
+            database.firebaseAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
                     {
                         @Override
@@ -115,8 +118,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             {
                                 finish();
 
-                                // Jump to homePage Activity
-                                startActivity(new Intent(getApplicationContext(), homePage.class));
+                                // Jump to HomePageActivity Activity
+                                startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
                             }
                             else
                             {
@@ -127,17 +130,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     });
         }
-    }
-
-    // The purpose of this function is to determine if a user is already logged in to the app.
-    private boolean isUserAlreadySignedIn(FirebaseAuth firebaseObject)
-    {
-        if(firebaseObject.getCurrentUser() != null )
-        {
-            return true;
-        }
-
-        return false;
     }
 
     // Validating that information was provided to all input fields
