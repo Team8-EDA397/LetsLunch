@@ -21,9 +21,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
-import com.google.firebase.database.ValueEventListener;
-
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -41,6 +38,9 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
     private DatabaseReference databaseReference;
 
     private Group createdGroup;
+    private static final String GROUP_NODE = "Groups-Info";
+    private static final String GROUP_USERS_NODE = "GroupsAndTheirMembers";
+    private static final String USERS_GROUPS_NODE = "UserAndTheirGroups";
 
 
     @Override
@@ -76,44 +76,41 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
             String location     = this.editTextMeetingLocation.getText().toString().trim();
             String time         = this.editTextLunchTime.getText().toString().trim();
 
+            int MAX_GROUP_CODE = 9999;
+            int MIN_GROUP_CODE = 1000;
+
             if (this.isAllInfoAvailable(groupName,location,time))
             {
                 // Created a group ID
+                 String createdGroupID  = groupName.trim()+"-"+String.valueOf(ThreadLocalRandom.current().nextInt(MIN_GROUP_CODE, MAX_GROUP_CODE + 1));
 
-                String createdGroupID  = "heita-1895";//groupName.trim()+"-"+String.valueOf(ThreadLocalRandom.current().nextInt(1000, 9999 + 1));
-                        //"heita-1895";
-                        //groupName.trim()+"-"+String.valueOf(ThreadLocalRandom.current().nextInt(1000, 9999 + 1));
-                // this.databaseReference.child("Groups-Info").push().getKey();
+                //uncomment below for testing same id
+                //String createdGroupID = "testfail-1895";
 
                 // creating a group object
                 createdGroup = new Group(groupName,location,time,createdGroupID);
 
-                // Create a node containing all information of the group
-                this.createGroup(createdGroup);
-
-                // Assign the creator of the group to the newly created group
-
-                // Adding the group to his creator
+                // try to create group if id is unique
+                tryCreateGroup(createdGroup);
 
             }
         }
     }
 
-    private void createGroup(final Group myGroup, final Boolean checked){
-        final DatabaseReference newGroupRef = this.databaseReference.child("Groups-Info").child(myGroup.getID()).getRef();
+
+    // Checks if /Group-Info/<groupId> has any data if not it creates the group
+    private void tryCreateGroup(final Group myGroup){
+        myProgressDialog.setMessage("Creating group  with id   "+myGroup.getID() );
+        myProgressDialog.show();
+        DatabaseReference newGroupRef = this.databaseReference.child(GROUP_NODE).child(myGroup.getID()).getRef();
         newGroupRef.runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData currentData) {
-                System.out.println("current data in do "+ currentData);
-                if (checked == false) {
-                    System.out.println("############# group is unique safe to update " + newGroupRef +" "+currentData);
-                    newGroupRef.setValue(myGroup);
+                if (currentData.getValue() == null) {
+                    currentData.setValue(myGroup);
                     return Transaction.success(currentData);
                 } else {
-                    System.out.println("############# group is not unique NOT safe to update " +  newGroupRef +" "+currentData);
-                    System.out.println("############# in failed " + newGroupRef);
                     return Transaction.abort();
-
                 }
             }
 
@@ -124,41 +121,32 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
                 }
                 //if transaction complemented successfully b will be true
                 if (b){
-                    System.out.println("############# group was created not adding creator to group");
+                    myProgressDialog.dismiss();
+                    Toast.makeText(createGroup.this, "New group was created, now adding you to group...", Toast.LENGTH_LONG).show();
+
+                    //join creator to group
                     addingGroupCreatorToHisGroup(createdGroup);
                 }else{
-                    System.out.println("should tell user to try again");
-
+                    myProgressDialog.dismiss();
+                    Toast.makeText(createGroup.this, "Failed to create group. Please try changing the group name", Toast.LENGTH_LONG).show();
                 }
-
             }
         });
 
     }
 
-    // This method implements the Firebase logic for creating a group
-    private void createGroup(final Group myGroup)
-    {
-        // Displaying message and showing the progress dialog
-        myProgressDialog.setMessage("Creating group  with id   "+myGroup.getID() );
-        myProgressDialog.show();
-        checkIfGroupExists(myGroup);
-
-
-    }
 
     // Adding the creator of the group to the group he created.
-    private void addingGroupCreatorToHisGroup(Group aGroup)
+    private void addingGroupCreatorToHisGroup(final Group aGroup)
     {
         // A firebase user object
         FirebaseUser user = firebaseAuth.getCurrentUser();
 
         // Create aUser object
-        aUser myUser = new aUser(user.getDisplayName());
+        aUser myUser = new aUser(user.getDisplayName()!=null? user.getDisplayName(): "no-display-name");
 
-        //Firebase logic for creating group
-
-        this.databaseReference.child("GroupsAndTheirMembers").child(aGroup.getID()).child(user.getUid()).setValue(myUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        //Firebase logic for creating group and their members
+        this.databaseReference.child(GROUP_USERS_NODE).child(aGroup.getID()).child(user.getUid()).setValue(myUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
@@ -168,8 +156,7 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
                 if(!task.isSuccessful())
                 {
                     // Notifying the user that saving was NOT successful
-
-                    Toast.makeText(createGroup.this, "Unable to add you to the created group. Try to join .", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(createGroup.this, "Unable to add you to the created group. Try to join manually. with code: "+aGroup.getID(), Toast.LENGTH_LONG).show();
 
                 }else{
                     addingGroupToOwner(createdGroup);
@@ -182,7 +169,7 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
     private void addingGroupToOwner(Group createdGroup)
     {
         //Firebase logic for creating group
-        this.databaseReference.child("UserAndTheirGroups").child(firebaseAuth.getCurrentUser().getUid()).child(createdGroup.getID()).setValue(createdGroup).addOnCompleteListener(this, new OnCompleteListener<Void>()
+        this.databaseReference.child(USERS_GROUPS_NODE).child(firebaseAuth.getCurrentUser().getUid()).child(createdGroup.getID()).setValue(createdGroup).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
@@ -192,7 +179,7 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
                 if(!task.isSuccessful())
                 {
                     // Notifying the user that saving was NOT successful
-                    Toast.makeText(createGroup.this, "Unable to add assign a group to you.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(createGroup.this, "Unable to assign a group to you.", Toast.LENGTH_LONG).show();
                 }else{
                     finish();
                 }
@@ -219,37 +206,7 @@ public class createGroup extends AppCompatActivity implements View.OnClickListen
             Toast.makeText(this, "Please enter a time", Toast.LENGTH_SHORT).show();
             return false;
         }
-
         return true;
     }
-
-
-    // Tests to see if /Group-Info/<groupId> has any data.
-    private void checkIfGroupExists(final Group group) {
-        DatabaseReference groupRef = databaseReference.child("Groups-Info").child(group.getID()).getRef();
-                groupRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-
-                if (snapshot.getValue()!=null) {
-                    //user exists, do something
-                    System.out.println("############# checkexists was true " + snapshot);
-                    createGroup(group, true);
-                } else {
-                    //user does not exist, do something else
-                    System.out.println("############# checkexists was false " + snapshot);
-                    createGroup(group, false);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-
-        });
-    }
-
-
 
 } // End of class
