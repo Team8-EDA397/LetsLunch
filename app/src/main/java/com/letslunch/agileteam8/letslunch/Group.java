@@ -41,5 +41,4 @@ public class Group
     public String getID() {
         return id;
     }
-
 } // End of class

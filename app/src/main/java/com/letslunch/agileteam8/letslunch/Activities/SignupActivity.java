@@ -118,7 +118,7 @@ public class SignupActivity extends AppCompatActivity implements View.OnClickLis
                             else
                             {
                                 // Notifying the user that registration was NOT successful
-                                Toast.makeText(SignupActivity.this, "Unable to Create Account. Try Again", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SignupActivity.this, task.getException().getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                             }
 
                         }
