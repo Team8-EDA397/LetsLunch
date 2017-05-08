@@ -6,18 +6,24 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.letslunch.agileteam8.letslunch.Activities.CreateGroupActivity;
 import com.letslunch.agileteam8.letslunch.Activities.HomePageActivity;
 import com.letslunch.agileteam8.letslunch.Activities.MainActivity;
+import com.letslunch.agileteam8.letslunch.Activities.MapsActivity;
 import com.letslunch.agileteam8.letslunch.Group;
+import com.letslunch.agileteam8.letslunch.Restaurant;
 import com.letslunch.agileteam8.letslunch.User;
 /**
  * Created by Carl-Henrik Hult on 2017-05-07.
@@ -28,9 +34,12 @@ public class DBHandler
     private static DBHandler ourInstance = new DBHandler();
     public FirebaseAuth firebaseAuth;
     public DatabaseReference databaseReference;
+
     public FirebaseUser currentUser;
     Activity activity;
     private String currentGroupID;
+
+    String prevSelection;
     public static synchronized DBHandler getInstance()
     {
         if(ourInstance == null)
@@ -230,6 +239,76 @@ public class DBHandler
             }
         });
 
+    }
+
+    public void saveRestaurants(String name, double latitude, double longitude, Marker m) {
+
+        String createdRestaurantID  = databaseReference.push().getKey();
+        m.setTag(createdRestaurantID);
+
+        Restaurant currentRestaurant = new Restaurant(createdRestaurantID, name, latitude, longitude);
+        databaseReference.child("GroupsAndTheirRestaurants").child(currentGroupID).child(currentRestaurant.getId()).setValue(currentRestaurant).addOnCompleteListener(activity, new OnCompleteListener<Void>()
+        {
+            @Override
+            public void onComplete(@NonNull Task<Void> task)
+            {
+
+                // Determine if task was completed successfully
+                if(!task.isSuccessful())
+                {
+                    // Notifying the user that saving was NOT successful
+                    Toast.makeText(activity, "Unable to save restaurant. Try Again", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+    }
+
+    public void joinRestaurant(String restId, String prevSelection) {
+
+        //adding default disp name because node value cant be null
+        String dispName = firebaseAuth.getCurrentUser().getDisplayName()==null? "missing-disp-name": firebaseAuth.getCurrentUser().getDisplayName();
+
+        String userId = firebaseAuth.getCurrentUser().getUid();
+        this.prevSelection = prevSelection;
+        //
+        if(this.prevSelection==null){
+            // Add the user to the restaurant
+            databaseReference.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
+            // Add the restaurant to the user
+            databaseReference.child("UsersAndTheirRestaurants").child(currentGroupID).child(userId).setValue(restId);
+
+            //Instantiate a listener incase user changes selection
+            databaseReference.child("UsersAndTheirRestaurants").child(currentGroupID).child(getUser()).addListenerForSingleValueEvent(getSelectionListener());
+
+        }else{
+            if(!prevSelection.equalsIgnoreCase(restId)) {
+                //remove old restaurant selection
+                databaseReference.child("RestaurantsAndTheirUsers").child(prevSelection).child(userId).setValue(null);
+                //Add user to a restaurant
+                databaseReference.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
+                // Add the restaurant to the user
+                databaseReference.child("UsersAndTheirRestaurants").child(currentGroupID).child(userId).setValue(restId);
+
+            }
+        }
+    }
+
+
+    public ValueEventListener getSelectionListener(){
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.getValue()!=null){
+                    prevSelection =(String)dataSnapshot.getValue();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
     }
 
 

@@ -75,32 +75,27 @@ public class CreateGroupActivity extends AppCompatActivity implements View.OnCli
 
     }
 
-    // Actions to perform when the appropriate button is clicked
     @Override
     public void onClick(View v)
     {
-        if (v == this.buttonCreateGroup)
+        if(v == this.buttonCreateGroup)
         {
             // Getting information about a group
-            String groupName    = this.editTextGroupName.getText().toString().trim();
-            String location     = this.editTextMeetingLocation.getText().toString().trim();
-            String time         = this.editTextLunchTime.getText().toString().trim();
+            String groupName = this.editTextGroupName.getText().toString().trim();
+            String location = this.editTextMeetingLocation.getText().toString().trim();
+            String time = this.editTextLunchTime.getText().toString().trim();
 
 
-            if (this.isAllInfoAvailable(groupName,location,time))
+            if(this.isAllInfoAvailable(groupName, location, time))
             {
                 // Created a group ID
-                String createdGroupID  = database.databaseReference.push().getKey();
-
-                // creating a group object
-                Group createdGroup = new Group(groupName, location, time, createdGroupID);
-                 String createdGroupID  = generateId(groupName);
+                String createdGroupID = generateId(groupName);
 
                 //uncomment below for testing same id
                 //String createdGroupID = "testfail-1895";
 
                 // creating a group object
-                createdGroup = new Group(groupName,location,time,createdGroupID);
+                createdGroup = new Group(groupName, location, time, createdGroupID);
 
                 // try to create group if id is unique
                 tryCreateGroup(createdGroup);
@@ -120,13 +115,6 @@ public class CreateGroupActivity extends AppCompatActivity implements View.OnCli
             newGroupName= groupName.replaceAll("[\u0000-\u001f]", "");
         }
 
-
-                // Assign the creator of the group to the newly created group
-                database.addingCurrentUserToGroup(createdGroup);
-
-                // Adding the group to his creator
-                database.addingGroupToCurrentUser(createdGroup);
-
         Set<Character> illegalChar = new HashSet<Character>(Arrays.asList('.', '$', '#', '[',']', '/',' '));
 
         //String Buffer for the result
@@ -134,7 +122,6 @@ public class CreateGroupActivity extends AppCompatActivity implements View.OnCli
         for(char c : newGroupName.toCharArray()){
             if (result.length()<= MAX_GROUP_NAME_SIZE && !illegalChar.contains(c)){
                 result.append(c);
-
             }
         }
 
@@ -142,12 +129,10 @@ public class CreateGroupActivity extends AppCompatActivity implements View.OnCli
         return result.toString()+"-"+String.valueOf(ThreadLocalRandom.current().nextInt(MIN_GROUP_CODE, MAX_GROUP_CODE + 1));
     }
 
-
-    // Checks if /Group-Info/<groupId> has any data if not it creates the group
     private void tryCreateGroup(final Group myGroup){
         myProgressDialog.setMessage("Creating group  with id   "+myGroup.getID() );
         myProgressDialog.show();
-        DatabaseReference newGroupRef = this.databaseReference.child(GROUP_NODE).child(myGroup.getID()).getRef();
+        DatabaseReference newGroupRef = database.databaseReference.child(GROUP_NODE).child(myGroup.getID()).getRef();
         newGroupRef.runTransaction(new Transaction.Handler() {
             @Override
             public Transaction.Result doTransaction(MutableData currentData) {
@@ -159,27 +144,6 @@ public class CreateGroupActivity extends AppCompatActivity implements View.OnCli
                 }
             }
 
-        //Firebase logic for creating group
-        database.databaseReference.child("Groups-Info").child(myGroup.getID()).setValue(myGroup).addOnCompleteListener(this, new OnCompleteListener<Void>()
-            {
-                @Override
-                public void onComplete(@NonNull Task<Void> task)
-                {
-                    // Stop the progress dialog
-                    //myProgressDialog.dismiss();
-
-                    // Determine if task was completed successfully
-                    if(task.isSuccessful())
-                    {
-                        // Move back to home screen
-                        finish();
-
-                    }
-                    else
-                    {
-                        // Notifying the user that saving was NOT successful
-                        Toast.makeText(CreateGroupActivity.this, "Unable to create group. Try Again", Toast.LENGTH_SHORT).show();
-                    }
             @Override
             public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
                 if (databaseError!=null) {
@@ -188,14 +152,13 @@ public class CreateGroupActivity extends AppCompatActivity implements View.OnCli
                 //if transaction complemented successfully b will be true
                 if (b){
                     myProgressDialog.dismiss();
-                    Toast.makeText(createGroup.this, "New group was created, now adding you to group...", Toast.LENGTH_LONG).show();
+                    Toast.makeText(CreateGroupActivity.this, "New group was created, now adding you to group...", Toast.LENGTH_LONG).show();
 
                     //join creator to group
-                    addingGroupCreatorToHisGroup(createdGroup);
+                    database.addingCurrentUserToGroup(createdGroup);
                 }else{
                     myProgressDialog.dismiss();
-                    Toast.makeText(createGroup.this, "Failed to create group. Please try changing the group name", Toast.LENGTH_LONG).show();
-
+                    Toast.makeText(CreateGroupActivity.this, "Failed to create group. Please try changing the group name", Toast.LENGTH_LONG).show();
                 }
             }
         });

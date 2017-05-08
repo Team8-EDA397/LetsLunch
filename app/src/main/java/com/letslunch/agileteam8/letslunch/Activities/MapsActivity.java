@@ -2,6 +2,7 @@ package com.letslunch.agileteam8.letslunch.Activities;
 
 
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -33,12 +34,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.letslunch.agileteam8.letslunch.R;
 import com.letslunch.agileteam8.letslunch.Restaurant;
+import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
 
     // Firebase variables
-    DatabaseReference databaseRestaurants;
-    FirebaseAuth firebaseAuth;
+    DBHandler database;
+
+    DatabaseReference databaseReference;
     DatabaseReference dbResSelectionRef=null;
 
     View.OnClickListener eatHereListener = null;
@@ -65,15 +68,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // and move the map's camera to the same location.
 
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        databaseRestaurants = FirebaseDatabase.getInstance().getReference();
-        dbResSelectionRef = databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid());
+        database = DBHandler.getInstance();
+        database.setActivity(this);
+
+        dbResSelectionRef = database.databaseReference.child("UsersAndTheirRestaurants").child(groupID).child(database.getUser());
         if(dbResSelectionRef!=null){
-            dbResSelectionRef.addValueEventListener(getSelectionListener());
+            dbResSelectionRef.addValueEventListener(database.getSelectionListener());
         }
 
 
-        databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).addValueEventListener(new ValueEventListener() {
+        database.databaseReference.child("GroupsAndTheirRestaurants").child(groupID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange (DataSnapshot dataSnapshot) {
 
@@ -92,7 +96,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                     //attempr to retrieve users at the restaurant
-                    databaseRestaurants.child("RestaurantsAndTheirUsers")
+                    database.databaseReference.child("RestaurantsAndTheirUsers")
                             .child(restaurant.getId())
                             .addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
@@ -154,10 +158,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Getting reference to the TextView to set longitude
                 TextView people = (TextView) v.findViewById(R.id.people);
 
-
-
-
-
                 // Setting the restaurant
                 String restaurant = arg0.getTitle();
                 restName.setText(restaurant);
@@ -188,13 +188,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                 }
-
-
-
-
-
-
-
 
                 // Returning the view containing InfoWindow contents
                 return v;
@@ -242,7 +235,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 .title(resName)
                         );
                         // User clicked OK button
-                        saveRestaurants(resName, lat, lng, m1);
+                        database.saveRestaurants(resName, lat, lng, m1);
 
                     }
                 });
@@ -256,30 +249,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 AlertDialog dialog = alertBuilder.create();
                 dialog.show();
 
-            }
-        });
-
-    }
-
-    // Method for saving the restaurant to the Firebase database.
-    private void saveRestaurants(String name, double latitude, double longitude, Marker m) {
-
-        String createdRestaurantID  = this.databaseRestaurants.push().getKey();
-        m.setTag(createdRestaurantID);
-
-        Restaurant currentRestaurant = new Restaurant(createdRestaurantID, name, latitude, longitude);
-        this.databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).child(currentRestaurant.getId()).setValue(currentRestaurant).addOnCompleteListener(this, new OnCompleteListener<Void>()
-        {
-            @Override
-            public void onComplete(@NonNull Task<Void> task)
-            {
-
-                // Determine if task was completed successfully
-                if(!task.isSuccessful())
-                {
-                    // Notifying the user that saving was NOT successful
-                    Toast.makeText(MapsActivity.this, "Unable to save restaurant. Try Again", Toast.LENGTH_SHORT).show();
-                }
             }
         });
 
@@ -335,13 +304,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(final Marker marker) {
         final String restId = marker.getTag().toString();
         marker.showInfoWindow();
-        databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).addValueEventListener(new ValueEventListener() {
+        databaseReference.child("RestaurantsAndTheirUsers").child(restId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
 
                 //Retrieve users at the restaurant
-                databaseRestaurants.child("RestaurantsAndTheirUsers")
+                databaseReference.child("RestaurantsAndTheirUsers")
                         .child(restId)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
@@ -387,7 +356,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 if (marker.getTag()!=null) {
-                    joinRestaurant(marker.getTag().toString());
+                    database.joinRestaurant(marker.getTag().toString(), prevSelection);
                     text = "Joining Restaurant";
                     eatHereButton.setVisibility(View.INVISIBLE);
                 }
@@ -407,41 +376,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         return true;
     }
-
-    public void joinRestaurant(String restId) {
-
-        //adding default disp name because node value cant be null
-        String dispName = firebaseAuth.getCurrentUser().getDisplayName()==null? "missing-disp-name": firebaseAuth.getCurrentUser().getDisplayName();
-
-        String userId = firebaseAuth.getCurrentUser().getUid();
-
-        //
-        if(prevSelection==null){
-            // Add the user to the restaurant
-            this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
-            // Add the restaurant to the user
-            this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(userId).setValue(restId);
-
-            //Instantiate a listener incase user changes selection
-            dbResSelectionRef.addListenerForSingleValueEvent(getSelectionListener());
-
-        }else{
-            if(!prevSelection.equalsIgnoreCase(restId)) {
-                //remove old restaurant selection
-                this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(prevSelection).child(userId).setValue(null);
-                //Add user to a restaurant
-                this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
-                // Add the restaurant to the user
-                this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(userId).setValue(restId);
-
-            }
-        }
-
-
-
-
-
-    }
-
 
 }

@@ -415,7 +415,7 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
     } // End of createAndShowAlert()
 
     // The purpose of this function is to specify the number of user having each eating status
-    private void settingEatingStatusCount(aUser myUser)
+    private void settingEatingStatusCount(User myUser)
     {
         if (myUser.getEatingStatus().equals(eatingStatus.BRING_LUNCH.toString()))
         {
@@ -445,11 +445,11 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
     private void dialogForPhoneNumber()
     {
         // Creating the dialog and setting title and splash image
-        AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
+        AlertDialog.Builder alert = new AlertDialog.Builder(HomePageActivity.this);
         alert.setTitle("Enter Phone Number");
         alert.setIcon(R.drawable.splash_img);
         // Setting the Textfield for entering the phone number
-        final EditText userPhoneInput = new EditText(homePage.this);
+        final EditText userPhoneInput = new EditText(HomePageActivity.this);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT);
