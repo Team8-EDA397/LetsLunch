@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             else
                             {
                                 // Notifying the user that registration was NOT successful
-                                Toast.makeText(MainActivity.this, "Unable to Sign In. Try Again.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, task.getException().getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                             }
 
                         }
