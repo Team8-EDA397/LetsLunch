@@ -1,70 +1,6 @@
 package com.letslunch.agileteam8.letslunch;
 
-/*
-import android.app.Dialog;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Bundle;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 
-import android.support.v7.app.AppCompatActivity;
-import android.view.Window;
-
-
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
-
-    GoogleMap nMap;
-    Marker campus;
-    private static final double
-            LINDHOLMEN_LAT = 57.7067061,
-            LINDHOLMEN_LNG = 11.9330267,
-
-            JOHANNEBERG_LAT = 57.6890079,
-            JOHANNEBERG_LNG = 11.9726245;
-
-    // Include the OnCreate() method here too, as described above.
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // Retrieve the content view that renders the map.
-        setContentView(R.layout.activity_maps);
-
-        // Get the SupportMapFragment and request notification
-        // when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-
-        nMap = googleMap;
-        // Add a marker in Lindholmen (Gothenburg), Sweden,
-        // and move the map's camera to the same location.
-        LatLng lindholmen = new LatLng(LINDHOLMEN_LAT, LINDHOLMEN_LNG);
-        campus = nMap.addMarker(new MarkerOptions().position(lindholmen)
-                .title("Marker in Lindholmen"));
-
-        float zoomLevel = 14.00f; //This goes up to 21
-        //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lindholmen,zoomLevel));
-        nMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lindholmen, zoomLevel), 2000, null);
-
-        // Another possible location
-        /*
-        LatLng johanneberg = new LatLng(JOHANNEBERG_LAT, JOHANNEBERG_LNG);
-        googleMap.addMarker(new MarkerOptions().position(johanneberg)
-                .title("Marker in Johanneberg"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(johanneberg));
-
-    }
-}
-*/
 
 import android.app.Activity;
 import android.content.Context;
@@ -75,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -86,6 +21,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.support.v7.app.AlertDialog;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -123,18 +59,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int TAG_CODE_PERMISSION_LOCATION = 0;
     // Firebase variables
     DatabaseReference databaseRestaurants;
+    FirebaseAuth firebaseAuth;
+    DatabaseReference dbResSelectionRef=null;
+
+    View.OnClickListener eatHereListener = null;
+    Button eatHereButton;
 
     String groupID;
+
+    String prevSelection=null;
 
     GoogleMap mMap;
     Marker campus;
 
     private static final double
             LINDHOLMEN_LAT = 57.7067061,
-            LINDHOLMEN_LNG = 11.9330267,
+            LINDHOLMEN_LNG = 11.9330267;
 
-            JOHANNEBERG_LAT = 57.6890079,
-            JOHANNEBERG_LNG = 11.9726245;
+
 
     //Define a request code to send to Google Play services
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
@@ -166,7 +108,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
 
+
+        firebaseAuth = FirebaseAuth.getInstance();
         databaseRestaurants = FirebaseDatabase.getInstance().getReference();
+        dbResSelectionRef = databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(firebaseAuth.getCurrentUser().getUid());
+        if(dbResSelectionRef!=null){
+            dbResSelectionRef.addValueEventListener(getSelectionListener());
+        }
+
 
         databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).addValueEventListener(new ValueEventListener() {
             @Override
@@ -177,10 +126,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 for(DataSnapshot restaurantSnapshot : dataSnapshot.getChildren()) {
                     //Retrieve restaurant from Firebase
                     Restaurant restaurant = restaurantSnapshot.getValue(Restaurant.class);
+
                     //Put restaurant marker on the map
-                    Marker restaurantMarker = mMap.addMarker(new MarkerOptions()
+                    final Marker restaurantMarker = mMap.addMarker(new MarkerOptions()
                             .position(restaurant.getLatLng())
                             .title(restaurant.getName()));
+                    if (restaurantMarker.getTag()==null) {
+                        restaurantMarker.setTag(restaurant.getId());
+                    }
+
+                    //attempr to retrieve users at the restaurant
+                    databaseRestaurants.child("RestaurantsAndTheirUsers")
+                            .child(restaurant.getId())
+                            .addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot2) {
+                                    restaurantMarker.setSnippet(Long.toString(dataSnapshot2.getChildrenCount()));
+
+                                    for (DataSnapshot userSnap : dataSnapshot2.getChildren()) {
+                                        restaurantMarker.setSnippet(restaurantMarker.getSnippet() + "," + userSnap.getValue());
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
 
                 }
             }
@@ -191,21 +163,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+
+        //TODO change this to zoom to user location
         final LatLng lindholmen = new LatLng(LINDHOLMEN_LAT, LINDHOLMEN_LNG);
+
+        /*
         campus = googleMap.addMarker(new MarkerOptions().position(lindholmen)
                 .title("Marker in Lindholmen"));
-
+*/
         float zoomLevel = 14.00f; //This goes up to 21
         //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lindholmen,zoomLevel));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lindholmen, zoomLevel), 2000, null);
 
-        // Another possible location
-        /*
-        LatLng johanneberg = new LatLng(JOHANNEBERG_LAT, JOHANNEBERG_LNG);
-        googleMap.addMarker(new MarkerOptions().position(johanneberg)
-                .title("Marker in Johanneberg"));
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(johanneberg));
-        */
 
         // Setting a custom info window adapter for the google map
         mMap.setInfoWindowAdapter(new InfoWindowAdapter() {
@@ -229,18 +198,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Getting reference to the TextView to set longitude
                 TextView people = (TextView) v.findViewById(R.id.people);
 
-                //People names
-                TextView person1 = (TextView) v.findViewById(R.id.person1);
-                TextView person2 = (TextView) v.findViewById(R.id.person2);
+
+
+
 
                 // Setting the restaurant
-                restName.setText(arg0.getTitle());
+                String restaurant = arg0.getTitle();
+                restName.setText(restaurant);
+
+                String[] info = arg0.getSnippet().split(",");
+
 
                 // Setting the people
-                people.setText("People coming:"+ " 2");
+                people.setText("People coming:"+ info[0]);
 
-                person1.setText("Pedro Gómez López");
-                person2.setText("Rami Salem");
+                //change to get values from snippet string
+
+                //People names
+                TextView person1 = (TextView) v.findViewById(R.id.person1);
+
+
+                //CHANGE!!!
+                CharSequence text = "";
+                for (int i=1; i< info.length; i++ ) {
+                    if ( person1.getText()!=null) {
+                        text=person1.getText();
+                    }
+                    if (i+1!=info.length) {
+                        person1.setText(text + info[i] + "\n");
+                    }
+                    else {
+                        person1.setText(text + info[i]);
+                    }
+
+                }
+
+
+
+
+
+
+
 
                 // Returning the view containing InfoWindow contents
                 return v;
@@ -254,24 +252,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng arg0) {
 
-                if(arg0.equals(lindholmen)) {
-                    // Clears any existing markers from the GoogleMap
-                    mMap.clear();
-
-                    // Creating an instance of MarkerOptions to set position
-                    MarkerOptions markerOptions = new MarkerOptions();
-
-                    // Setting position on the MarkerOptions
-                    markerOptions.position(arg0);
-
-                    // Animating to the currently touched position
-                    mMap.animateCamera(CameraUpdateFactory.newLatLng(arg0));
-
-                    // Adding marker on the GoogleMap
-                    final Marker marker = mMap.addMarker(markerOptions);
-
-                    // Showing InfoWindow on the GoogleMap
-                    marker.showInfoWindow();
+                if(eatHereButton!=null) {
+                    eatHereButton.setVisibility(View.INVISIBLE);
                 }
             }
         });
@@ -291,6 +273,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 alertBuilder.setMessage("Enter name of restaurant:");
 
                 //input stuff
+
                 // Set up the input
                 final EditText input = new EditText(MapsActivity.this);
                 alertBuilder.setView(input);
@@ -305,7 +288,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 .title(resName)
                         );
                         // User clicked OK button
-                        saveRestaurants(resName, lat, lng);
+                        saveRestaurants(resName, lat, lng, m1);
+
                     }
                 });
                 alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -315,11 +299,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 });
 
-
                 AlertDialog dialog = alertBuilder.create();
                 dialog.show();
-
-
 
             }
         });
@@ -372,12 +353,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     // Method for saving the restaurant to the Firebase database.
-    private void saveRestaurants(String name, double latitude, double longitude) {
+    private void saveRestaurants(String name, double latitude, double longitude, Marker m) {
 
         String createdRestaurantID  = this.databaseRestaurants.push().getKey();
+        m.setTag(createdRestaurantID);
 
         Restaurant currentRestaurant = new Restaurant(createdRestaurantID, name, latitude, longitude);
-        System.out.println("******************************************************" + groupID);
         this.databaseRestaurants.child("GroupsAndTheirRestaurants").child(groupID).child(currentRestaurant.getId()).setValue(currentRestaurant).addOnCompleteListener(this, new OnCompleteListener<Void>()
         {
             @Override
@@ -447,11 +428,97 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
+    public ValueEventListener getSelectionListener(){
+        return new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.getValue()!=null){
+                    prevSelection =(String)dataSnapshot.getValue();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+    }
+
     //method that defines what happens when clicking a marker
     @Override
-    public boolean onMarkerClick(Marker marker) {
-        //TODO: implement showing a button that allows you to say you are going to that place
+    public boolean onMarkerClick(final Marker marker) {
+        final String restId = marker.getTag().toString();
         marker.showInfoWindow();
+        databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+
+                //Retrieve users at the restaurant
+                databaseRestaurants.child("RestaurantsAndTheirUsers")
+                        .child(restId)
+                        .addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot2) {
+                                marker.setSnippet(Long.toString(dataSnapshot2.getChildrenCount()));
+
+
+                                for (DataSnapshot userSnap : dataSnapshot2.getChildren()) {
+
+                                    marker.setSnippet(marker.getSnippet() + "," + userSnap.getValue());
+                                }
+
+                                //refresh infowindow with new info
+                                if (marker != null && marker.isInfoWindowShown()) {
+                                    marker.hideInfoWindow();
+                                    marker.showInfoWindow();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+        // Animating to the currently touched marker
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()));
+
+        eatHereButton = (Button) findViewById(R.id.eatHereButton);
+        eatHereButton.setVisibility(View.VISIBLE);
+
+        eatHereListener = new View.OnClickListener() {
+            CharSequence text="";
+            @Override
+            public void onClick(View v) {
+                if (marker.getTag()!=null) {
+                    joinRestaurant(marker.getTag().toString());
+                    text = "Joining Restaurant";
+                    eatHereButton.setVisibility(View.INVISIBLE);
+                }
+                else {
+                    text = "failed to join restaurant try again ";
+                }
+                int duration = Toast.LENGTH_SHORT;
+                Context context = getApplicationContext();
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
+            }
+
+        };
+        eatHereButton.setOnClickListener(eatHereListener);
+
+
+
         return true;
     }
 
@@ -475,8 +542,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //Toast.makeText(this, currentLatitude + " WORKS " + currentLongitude + "", Toast.LENGTH_LONG).show();
             }
-        }
+    }
+      
+    public void joinRestaurant(String restId) {
 
+        //adding default disp name because node value cant be null
+        String dispName = firebaseAuth.getCurrentUser().getDisplayName()==null? "missing-disp-name": firebaseAuth.getCurrentUser().getDisplayName();
+
+        String userId = firebaseAuth.getCurrentUser().getUid();
+
+        //
+        if(prevSelection==null){
+            // Add the user to the restaurant
+            this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
+            // Add the restaurant to the user
+            this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(userId).setValue(restId);
+
+            //Instantiate a listener incase user changes selection
+            dbResSelectionRef.addListenerForSingleValueEvent(getSelectionListener());
+
+        }else{
+            if(!prevSelection.equalsIgnoreCase(restId)) {
+                //remove old restaurant selection
+                this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(prevSelection).child(userId).setValue(null);
+                //Add user to a restaurant
+                this.databaseRestaurants.child("RestaurantsAndTheirUsers").child(restId).child(userId).setValue(dispName);
+                // Add the restaurant to the user
+                this.databaseRestaurants.child("UsersAndTheirRestaurants").child(groupID).child(userId).setValue(restId);
+
+            }
+        }
+    }
 
     @Override
     public void onConnectionSuspended(int i) {
@@ -511,4 +607,4 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.e("Error", "Location services connection failed with code " + connectionResult.getErrorCode());
         }
     }
-}
+  }
