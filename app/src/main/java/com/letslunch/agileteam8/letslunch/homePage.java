@@ -2,6 +2,10 @@ package com.letslunch.agileteam8.letslunch;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,14 +15,22 @@ import android.content.SharedPreferences;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.tasks.Task;
 import android.support.annotation.NonNull;
@@ -53,6 +65,7 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     private Button buttonCreateGroup;
     private Button buttonJoinGroup;
 
+
     // Firebase variables
     FirebaseAuth firebaseAuth;
     DatabaseReference databaseGroups;
@@ -63,6 +76,13 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
     String currentUser;
 
     String groupID;
+
+    int numberOfNotAttending        = 0;
+    int numberOfEatingAtRestaurant  = 0;
+    int numberOfBringLunch          = 0;
+
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 0;
+    private String phoneNumberToSendSMS = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -267,15 +287,24 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                 Log.d("Click", "Entre");
                 // Clearing the list
                 usersList.clear();
+
+                resetEatingStatusCount();
+
                 // Obtaining users and placing them on the list of users
                 for(DataSnapshot usersSnapshot : dataSnapshot.getChildren())
                 {
                     aUser user = usersSnapshot.getValue(aUser.class);
+                    settingEatingStatusCount(user);
                     usersList.add(user);
                 }
 
                 // Print users
                 createAndShowAlert(position);
+                // DEBUGG
+                Log.v("Restaurant Count", "" + numberOfEatingAtRestaurant);
+                Log.v("Bring Lunch Count", "" + numberOfBringLunch);
+                Log.v("Not Attending Count", "" + numberOfNotAttending);
+                // DEBUG
 
             }
             @Override
@@ -284,26 +313,103 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
             }
         });
     }
-    private String getAllUsers()
+    private SpannableStringBuilder getAllUsers()
     {
-        String users = "";
+        SpannableStringBuilder builder = new SpannableStringBuilder();
+        String[] users = new String[usersList.size()];
+        builder.append("Users: \n");
         for(int i = 0 ; i< usersList.size(); i++)
         {
-            users = users + usersList.get(i).getName() + " \n";
+                users[i] = usersList.get(i).getName() + "\n";
+                switch (usersList.get(i).getEatingStatus())
+                {
+                    case "NOT_ATTENDING":
+                        SpannableString notA= new SpannableString(users[i]);
+                        notA.setSpan(new ForegroundColorSpan(Color.RED), 0, users[i].length(), 0);
+                        builder.append(notA);
+                        break;
+                    case "BRING_LUNCH":
+                        SpannableString brinL= new SpannableString(users[i]);
+                        brinL.setSpan(new ForegroundColorSpan(Color.GREEN), 0, users[i].length(), 0);
+                        builder.append(brinL);
+                        break;
+                    case "EATING_AT_RESTAURANT":
+                        SpannableString eaR= new SpannableString(users[i]);
+                        eaR.setSpan(new ForegroundColorSpan(Color.BLUE), 0, users[i].length(), 0);
+                        builder.append(eaR);
+                        break;
+                    default:
+                        SpannableString def= new SpannableString(users[i]);
+                        def.setSpan(new ForegroundColorSpan(Color.RED), 0, users[i].length(), 0);
+                        builder.append(def);
+                        break;
+                }
         }
-        return users;
+
+        return builder;
     }
     private void createAndShowAlert(int position)
     {
         AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
+        LayoutInflater inflater = getLayoutInflater();
+
+        View customView = inflater.inflate(R.layout.customalert, null);
+        TextView group = (TextView)customView.findViewById(R.id.groupInfo);
+        TextView users = (TextView)customView.findViewById(R.id.usersInfo);
+
+        TextView nL = (TextView)customView.findViewById(R.id.lunchCounter);
+        TextView nR = (TextView)customView.findViewById(R.id.restCounter);
+        TextView nNA = (TextView)customView.findViewById(R.id.notACounter);
+        Button invitation = (Button) customView.findViewById(R.id.invitations);
+        invitation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialogForPhoneNumber();
+            }
+        });
+
+
         alert.setTitle("Lets Lunch ");
         alert.setIcon(R.drawable.splash_img);
+
+        alert.setView(customView);
+
+
+        group.setText("Group: "+groupList.get(position).getName()+
+                "\n"+"Id: "+groupList.get(position).getID()+
+                "\n"+"Location: "+groupList.get(position).getLocation()+
+                "\n"+"Time: "+groupList.get(position).getTime());
+
+        users.setText(getAllUsers(), TextView.BufferType.SPANNABLE);
+
+        SpannableStringBuilder notAC_builder = new SpannableStringBuilder();
+        SpannableStringBuilder BLC_builder = new SpannableStringBuilder();
+        SpannableStringBuilder BRLC_builder = new SpannableStringBuilder();
+
+        SpannableString notAC= new SpannableString(""+numberOfNotAttending);
+        notAC.setSpan(new ForegroundColorSpan(Color.RED), 0, (""+numberOfNotAttending).length(), 0);
+        notAC_builder.append(notAC);
+
+        SpannableString BLC= new SpannableString(""+numberOfBringLunch);
+        BLC.setSpan(new ForegroundColorSpan(Color.GREEN), 0, (""+numberOfBringLunch).length(), 0);
+        BLC_builder.append(BLC);
+
+        SpannableString BRLC= new SpannableString(""+numberOfEatingAtRestaurant);
+        BRLC.setSpan(new ForegroundColorSpan(Color.BLUE), 0, (""+numberOfEatingAtRestaurant).length(), 0);
+        BRLC_builder.append(BRLC);
+
+        nL.setText(notAC_builder,TextView.BufferType.SPANNABLE);
+        nR.setText(BLC_builder,TextView.BufferType.SPANNABLE);
+        nNA.setText(BRLC_builder,TextView.BufferType.SPANNABLE);
+
+        /*
         alert.setMessage("Group: "+groupList.get(position).getName()+
                 "\n"+"Id: "+groupList.get(position).getID()+
                 "\n"+"Location: "+groupList.get(position).getLocation()+
                 "\n"+"Time: "+groupList.get(position).getTime()+"\n"+
                 "\n"+"Users \n"+ getAllUsers()
         );
+        */
 
         alert.setNegativeButton(R.string.lunch_box,
                 new DialogInterface.OnClickListener() {
@@ -335,5 +441,125 @@ public class homePage extends AppCompatActivity implements View.OnClickListener
                 });
         alert.show();
     } // End of createAndShowAlert()
+
+    // The purpose of this function is to specify the number of user having each eating status
+    private void settingEatingStatusCount(aUser myUser)
+    {
+        if (myUser.getEatingStatus().equals(eatingStatus.BRING_LUNCH.toString()))
+        {
+            this.numberOfBringLunch++;
+        }
+        else if (myUser.getEatingStatus().equals(eatingStatus.EATING_AT_RESTAURANT.toString()))
+        {
+            this.numberOfEatingAtRestaurant++;
+        }
+        else
+        {
+            this.numberOfNotAttending++;
+        }
+
+
+    }
+
+    // The purpose of this function is to reset the count of the user
+    private void resetEatingStatusCount()
+    {
+        this.numberOfEatingAtRestaurant = 0;
+        this.numberOfNotAttending       = 0;
+        this.numberOfBringLunch         = 0;
+    }
+
+    // The purpose of this code is to display a dialog for requesting the phone number for sending the SMS text
+    private void dialogForPhoneNumber()
+    {
+        // Creating the dialog and setting title and splash image
+        AlertDialog.Builder alert = new AlertDialog.Builder(homePage.this);
+        alert.setTitle("Enter Phone Number");
+        alert.setIcon(R.drawable.splash_img);
+        // Setting the Textfield for entering the phone number
+        final EditText userPhoneInput = new EditText(homePage.this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        userPhoneInput.setLayoutParams(lp);
+        alert.setView(userPhoneInput);
+        // Setting the Send button invitation
+        alert.setPositiveButton(R.string.Send_Invitation, new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialog, int which)
+            {
+                // Clearing the previous Phone Number
+                phoneNumberToSendSMS = "";
+                // Getting the new phone number
+                phoneNumberToSendSMS = userPhoneInput.getText().toString();
+                // Sending the SMS
+                sendMessage();
+            }
+        });
+        alert.show();
+    }
+    // The purpose of this function is to set the permissions for sending SMS
+    private void sendMessage()
+    {
+        // If no permission has been granted by the user
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
+        {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.SEND_SMS))
+            {
+            }
+            else
+            {
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
+            }
+        }
+        else // Permission has been granted by the user
+        {
+            this.sendingMessageLogic();
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults)
+    {
+        switch (requestCode)
+        {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS:
+            {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    this.sendingMessageLogic();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+        }
+    }
+    // This is the logic involved for sending a text message
+    private void sendingMessageLogic()
+    {
+        if(this.phoneNumberIsInteger())
+        {
+            // Setting a message content
+            String messageToSet = "Join us with this code = "+ this.groupID;
+            // Creating a Manager
+            SmsManager smsManager = SmsManager.getDefault();
+            // Sending the Text
+            smsManager.sendTextMessage(this.phoneNumberToSendSMS, null, messageToSet, null, null);
+            // Letting the user know it was a success
+            Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "Invalid Phone Number", Toast.LENGTH_LONG).show();
+        }
+    }
+    // Determining if the phone number provided is valie
+    private Boolean phoneNumberIsInteger()
+    {
+        return android.util.Patterns.PHONE.matcher(this.phoneNumberToSendSMS).matches();
+    }
 
 } // End of class

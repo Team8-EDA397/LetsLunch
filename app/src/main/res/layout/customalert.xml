@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.letslunch.agileteam8.letslunch.joinGroup">
+
+    <TextView
+    android:id="@+id/groupInfo"
+    android:layout_width="135pt"
+    android:layout_height="wrap_content"
+    android:textSize="8pt"
+    android:text="Hello"
+    android:layout_marginTop="24dp"
+    android:layout_marginStart="28dp"
+    android:layout_alignParentTop="true"
+    android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/usersInfo"
+        android:layout_width="135pt"
+        android:layout_height="wrap_content"
+        android:textSize="8pt"
+        android:text="Hello"
+        android:layout_marginTop="15dp"
+        android:layout_below="@+id/lunchCounter"
+        android:layout_alignEnd="@+id/restCounter" />
+
+    <TextView
+        android:id="@+id/lunchCounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/usersInfo"
+        android:textSize="15pt"
+        android:layout_below="@+id/groupInfo"
+        android:layout_marginTop="21dp"
+        android:text="LC" />
+
+    <TextView
+        android:id="@+id/restCounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RC"
+        android:textSize="15pt"
+        android:layout_alignBaseline="@+id/notACounter"
+        android:layout_alignBottom="@+id/notACounter"
+        android:layout_alignEnd="@+id/groupInfo" />
+
+    <TextView
+        android:id="@+id/notACounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="NAC"
+        android:textSize="15pt"
+        android:layout_above="@+id/usersInfo"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:id="@+id/invitations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Invite"
+        android:layout_below="@+id/usersInfo"
+        android:layout_centerHorizontal="true" />
+
+</RelativeLayout>
