@@ -15,5 +15,6 @@
     <string name="restaurant">Buy lunch</string>
     <string name="neutral">Not attend</string>
     <string name="addLocation">Add Location</string>
+    <string name="Send_Invitation">Send Invitation</string>
 
 </resources>
