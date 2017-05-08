@@ -19,10 +19,8 @@ import java.util.Calendar;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
 import com.letslunch.agileteam8.letslunch.R;
 import com.letslunch.agileteam8.letslunch.ReminderReceiver;
-import com.letslunch.agileteam8.letslunch.Utils.DatabaseHandler;
 import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
