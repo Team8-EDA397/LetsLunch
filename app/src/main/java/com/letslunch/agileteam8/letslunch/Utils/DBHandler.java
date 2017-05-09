@@ -190,17 +190,18 @@ public class DBHandler
 
     /**
      * Adding the current to aGroup
-     * @param aGroup
+     * @param group
      */
-    public void addCurrentUserToGroup(Group aGroup)
+    public void addCurrentUserToGroup(Group group)
     {
         // A firebase user object
+        currentGroupID = group.getID();
 
         // Create User object
         User myUser = new User(currentUser.getDisplayName());
 
         //Firebase logic for creating group
-        this.databaseReference.child("GroupsAndTheirMembers").child(aGroup.getID()).child(currentUser.getUid()).setValue(myUser).addOnCompleteListener(activity, new OnCompleteListener<Void>()
+        this.databaseReference.child("GroupsAndTheirMembers").child(group.getID()).child(currentUser.getUid()).setValue(myUser).addOnCompleteListener(activity, new OnCompleteListener<Void>()
         {
             @Override
             public void onComplete(@NonNull Task<Void> task)
@@ -226,6 +227,7 @@ public class DBHandler
 
         // Create User object
         User myUser = new User(currentUser.getDisplayName());
+        currentGroupID = groupCode;
 
         //Firebase logic for creating group
         this.databaseReference.child("GroupsAndTheirMembers").child(groupCode).child(currentUser.getUid()).setValue(myUser).addOnCompleteListener(activity, new OnCompleteListener<Void>()
@@ -240,6 +242,7 @@ public class DBHandler
                     Toast.makeText(activity, "Unable to add you to the created group. Try Manually.", Toast.LENGTH_SHORT).show();
 
                 }
+
             }
         });
 
@@ -266,6 +269,7 @@ public class DBHandler
 
                             // Join the user to group
                             addCurrentUserToGroup(groupCode);
+                            currentGroupID = groupCode;
 
                             // finish the current activity
                             activity.finish();
@@ -297,7 +301,7 @@ public class DBHandler
 
 
     // The purpose of this function is to assign to a given owner the groups he belongs to
-    public void addingGroupToCurrentUser(Group createdGroup)
+    public void addingGroupToCurrentUser(final Group createdGroup)
     {
         //Firebase logic for creating group
         this.databaseReference.child("UserAndTheirGroups").child(firebaseAuth.getCurrentUser().getUid()).child(createdGroup.getID()).setValue(createdGroup).addOnCompleteListener(activity, new OnCompleteListener<Void>()
@@ -312,6 +316,7 @@ public class DBHandler
                     // Notifying the user that saving was NOT successful
                     Toast.makeText(activity, "Unable to add assign a group to you.", Toast.LENGTH_SHORT).show();
                 }
+                currentGroupID = createdGroup.getID();
             }
         });
 
