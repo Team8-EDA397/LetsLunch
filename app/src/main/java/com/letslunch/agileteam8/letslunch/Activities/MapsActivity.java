@@ -300,13 +300,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(final Marker marker) {
         final String restId = marker.getTag().toString();
         marker.showInfoWindow();
-        databaseReference.child("RestaurantsAndTheirUsers").child(restId).addValueEventListener(new ValueEventListener() {
+        database.databaseReference.child("RestaurantsAndTheirUsers").child(restId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
 
                 //Retrieve users at the restaurant
-                databaseReference.child("RestaurantsAndTheirUsers")
+                database.databaseReference.child("RestaurantsAndTheirUsers")
                         .child(restId)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
