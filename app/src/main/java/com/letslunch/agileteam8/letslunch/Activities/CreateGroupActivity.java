@@ -9,24 +9,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import android.support.annotation.NonNull;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.letslunch.agileteam8.letslunch.Group;
 import com.letslunch.agileteam8.letslunch.R;
-import com.letslunch.agileteam8.letslunch.User;
 import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 
@@ -155,7 +145,8 @@ public class CreateGroupActivity extends AppCompatActivity implements View.OnCli
                     Toast.makeText(CreateGroupActivity.this, "New group was created, now adding you to group...", Toast.LENGTH_LONG).show();
 
                     //join creator to group
-                    database.addingCurrentUserToGroup(createdGroup);
+                    //database.addCurrentUserToGroup(myGroup);
+                    database.joinGroup(myGroup.getID());
                 }else{
                     myProgressDialog.dismiss();
                     Toast.makeText(CreateGroupActivity.this, "Failed to create group. Please try changing the group name", Toast.LENGTH_LONG).show();

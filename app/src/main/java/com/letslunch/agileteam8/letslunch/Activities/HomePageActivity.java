@@ -10,17 +10,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.Intent;
 
-import android.content.SharedPreferences;
-import android.os.Vibrator;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+
 import android.telephony.SmsManager;
-import android.text.Html;
+
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
-import android.view.Gravity;
+
 import android.view.LayoutInflater;
 
 import android.view.View;
@@ -32,12 +29,6 @@ import android.widget.ListView;
 
 import android.widget.TextView;
 import android.widget.Toast;
-import com.google.android.gms.tasks.Task;
-import android.support.annotation.NonNull;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

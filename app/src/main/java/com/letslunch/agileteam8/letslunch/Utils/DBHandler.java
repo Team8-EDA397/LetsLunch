@@ -9,7 +9,6 @@ import android.widget.Toast;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
@@ -18,10 +17,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.letslunch.agileteam8.letslunch.Activities.CreateGroupActivity;
-import com.letslunch.agileteam8.letslunch.Activities.HomePageActivity;
+
 import com.letslunch.agileteam8.letslunch.Activities.MainActivity;
-import com.letslunch.agileteam8.letslunch.Activities.MapsActivity;
+
 import com.letslunch.agileteam8.letslunch.Group;
 import com.letslunch.agileteam8.letslunch.Restaurant;
 import com.letslunch.agileteam8.letslunch.User;
@@ -194,7 +192,7 @@ public class DBHandler
      * Adding the current to aGroup
      * @param aGroup
      */
-    public void addingCurrentUserToGroup(Group aGroup)
+    public void addCurrentUserToGroup(Group aGroup)
     {
         // A firebase user object
 
@@ -218,6 +216,84 @@ public class DBHandler
         });
 
     }
+    /**
+     * Adding the currentuser to aGroup
+     * @param groupCode
+     */
+    public void addCurrentUserToGroup(String groupCode)
+    {
+        // A firebase user object
+
+        // Create User object
+        User myUser = new User(currentUser.getDisplayName());
+
+        //Firebase logic for creating group
+        this.databaseReference.child("GroupsAndTheirMembers").child(groupCode).child(currentUser.getUid()).setValue(myUser).addOnCompleteListener(activity, new OnCompleteListener<Void>()
+        {
+            @Override
+            public void onComplete(@NonNull Task<Void> task)
+            {
+                // Determine if task was completed successfully
+                if(!task.isSuccessful())
+                {
+                    // Notifying the user that saving was NOT successful
+                    Toast.makeText(activity, "Unable to add you to the created group. Try Manually.", Toast.LENGTH_SHORT).show();
+
+                }
+            }
+        });
+
+    }
+
+    // The purpose of this function is to perform the necessary logic for joining a group
+    public void joinGroup(final String groupCode)
+    {
+        // This is a value listener used for reading values from the database.
+        ValueEventListener groupListener = new ValueEventListener()
+        {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) // No problem occurred
+            {
+                if(dataSnapshot.hasChild(groupCode)) // The provided code is valid
+                {
+                    for (DataSnapshot data : dataSnapshot.getChildren())
+                    {
+                        Group myGroup = data.getValue(Group.class);
+                        if (myGroup.getID().equals(groupCode))
+                        {
+                            // Set group to user
+                            addingGroupToCurrentUser(myGroup);
+
+                            // Join the user to group
+                            addCurrentUserToGroup(groupCode);
+
+                            // finish the current activity
+                            activity.finish();
+
+                            // Exit
+                            return;
+                        }
+                    }
+
+                }
+                else
+                {
+                    Toast.makeText(activity, "Invalid Code: No group found.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) // Problem occurred extracting values
+            {
+                Toast.makeText(activity, "Unable to add you to the group. Try later.", Toast.LENGTH_SHORT).show();
+            }
+        };
+
+
+        databaseReference.child("Groups-Info").addListenerForSingleValueEvent(groupListener);
+
+    }
+
 
 
     // The purpose of this function is to assign to a given owner the groups he belongs to
