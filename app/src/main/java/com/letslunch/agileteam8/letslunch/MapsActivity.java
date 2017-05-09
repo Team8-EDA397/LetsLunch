@@ -286,6 +286,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Marker m1 = mMap.addMarker(new MarkerOptions()
                             .position(latLngCopy)
                                 .title(resName)
+                                .snippet("0")
                         );
                         // User clicked OK button
                         saveRestaurants(resName, lat, lng, m1);
