@@ -1,32 +1,26 @@
 package com.letslunch.agileteam8.letslunch.Activities;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.content.Intent;
-
-
 import android.telephony.SmsManager;
-
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
-
 import android.view.LayoutInflater;
-
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,39 +38,26 @@ import java.util.List;
 
 public class HomePageActivity extends AppCompatActivity implements View.OnClickListener
 {
-    // Creating an Enumeration for the possible eating status of a user.
-    private enum eatingStatus
-    {
-        // Enumeration values
-        NOT_ATTENDING, EATING_AT_RESTAURANT, BRING_LUNCH;
-    };
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 0;
 
-
-    // Widgets variables
-    private Button buttonLogOut;
-    private Button buttonCreateGroup;
-    private Button buttonJoinGroup;
-
-
+    ;
     // Firebase variables
     DBHandler database;
     ListView listViewGroups;
     List<Group> groupList;
     List<User> usersList; // List of groups members for a given group
     String currentUser;
-
     String groupID;
-
-    int numberOfNotAttending        = 0;
-    int numberOfEatingAtRestaurant  = 0;
-    int numberOfBringLunch          = 0;
-
-    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 0;
+    int numberOfNotAttending = 0;
+    int numberOfEatingAtRestaurant = 0;
+    int numberOfBringLunch = 0;
+    // Widgets variables
+    private Button buttonLogOut;
+    private Button buttonCreateGroup;
+    private Button buttonJoinGroup;
     private String phoneNumberToSendSMS = "";
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
@@ -84,9 +65,9 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         database = DBHandler.getInstance();
         database.setActivity(this);
         // Instantiating widgets
-        buttonLogOut        = (Button) findViewById(R.id.logoutButton);
-        buttonCreateGroup   = (Button) findViewById(R.id.buttonCreateGroup);
-        buttonJoinGroup     = (Button) findViewById(R.id.buttonJoinGroup);
+        buttonLogOut = (Button) findViewById(R.id.logoutButton);
+        buttonCreateGroup = (Button) findViewById(R.id.buttonCreateGroup);
+        buttonJoinGroup = (Button) findViewById(R.id.buttonJoinGroup);
         listViewGroups = (ListView) findViewById(R.id.listViewGroups);
 
         // Setting listeners
@@ -95,8 +76,7 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         buttonJoinGroup.setOnClickListener(this);
 
         // Checking if the user is sign-in or not
-        if (!database.isUserAlreadySignedIn())
-        {
+        if(!database.isUserAlreadySignedIn()) {
             // Finish current activity
             finish();
 
@@ -118,8 +98,7 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         // Clicking a row from the table view
         listViewGroups.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // getting th group ID
                 groupID = groupList.get(position).getID();
                 database.setCurrentGroupID(groupID);
@@ -137,133 +116,130 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
     }
 
     // Performing appropriate actions depending on what button is clicked
-    @Override
-    public void onClick(View v)
-    {
-        if (v == this.buttonLogOut)
-        {
+    @Override public void onClick(View v) {
+        if(v == this.buttonLogOut) {
             // Sign the user out
             database.signUserOut();
-        }
-        else if (v == this.buttonCreateGroup)
-        {
+        } else if(v == this.buttonCreateGroup) {
             // Move to the CreateGroupActivity activity
             startActivity(new Intent(this, CreateGroupActivity.class));
 
-        }
-        else if (v == this.buttonJoinGroup)
-        {
+        } else if(v == this.buttonJoinGroup) {
             // Move to the JoinGroupActivity activity
             startActivity(new Intent(this, JoinGroupActivity.class));
         }
     }
 
-    public void loadGroup(){
-        database.databaseReference.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange (DataSnapshot dataSnapshot) {
-                groupList.clear();
-                for(DataSnapshot groupsSnapshot : dataSnapshot.getChildren()){
+    public void loadGroup() {
+        database.databaseReference.child("UserAndTheirGroups")
+                                  .child(currentUser)
+                                  .addValueEventListener(new ValueEventListener()
+                                  {
+                                      @Override
+                                      public void onDataChange(DataSnapshot dataSnapshot) {
+                                          groupList.clear();
+                                          for(DataSnapshot groupsSnapshot : dataSnapshot.getChildren()) {
 
-                    Group group = groupsSnapshot.getValue(Group.class);
-                    groupList.add(group);
-                }
-                GroupList adapter = new GroupList(HomePageActivity.this, groupList);
-                listViewGroups.setAdapter(adapter);
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
+                                              Group group = groupsSnapshot.getValue(Group.class);
+                                              groupList.add(group);
+                                          }
+                                          GroupList adapter = new GroupList(HomePageActivity.this,
+                                                                            groupList);
+                                          listViewGroups.setAdapter(adapter);
+                                      }
+
+                                      @Override
+                                      public void onCancelled(DatabaseError databaseError) {
+                                      }
+                                  });
     }
-    private void loadUsers(final int position)
-    {
+
+    private void loadUsers(final int position) {
         Log.d("ID to be used = ", this.groupID);
-        database.databaseReference.child("GroupsAndTheirMembers").child(this.groupID).addListenerForSingleValueEvent(new ValueEventListener()
-        {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot)
-            {
-                Log.d("Click", "Entre");
-                // Clearing the list
-                usersList.clear();
+        database.databaseReference.child("GroupsAndTheirMembers")
+                                  .child(this.groupID)
+                                  .addListenerForSingleValueEvent(new ValueEventListener()
+                                  {
+                                      @Override
+                                      public void onDataChange(DataSnapshot dataSnapshot) {
+                                          Log.d("Click", "Entre");
+                                          // Clearing the list
+                                          usersList.clear();
 
-                resetEatingStatusCount();
+                                          resetEatingStatusCount();
 
-                // Obtaining users and placing them on the list of users
-                for(DataSnapshot usersSnapshot : dataSnapshot.getChildren())
-                {
-                    User user = usersSnapshot.getValue(User.class);
-                    settingEatingStatusCount(user);
-                    usersList.add(user);
-                }
+                                          // Obtaining users and placing them on the list of users
+                                          for(DataSnapshot usersSnapshot : dataSnapshot.getChildren()) {
+                                              User user = usersSnapshot.getValue(User.class);
+                                              settingEatingStatusCount(user);
+                                              usersList.add(user);
+                                          }
 
-                // Print users
-                createAndShowAlert(position);
-                // DEBUGG
-                Log.v("Restaurant Count", "" + numberOfEatingAtRestaurant);
-                Log.v("Bring Lunch Count", "" + numberOfBringLunch);
-                Log.v("Not Attending Count", "" + numberOfNotAttending);
-                // DEBUG
+                                          // Print users
+                                          createAndShowAlert(position);
+                                          // DEBUGG
+                                          Log.v("Restaurant Count",
+                                                "" + numberOfEatingAtRestaurant);
+                                          Log.v("Bring Lunch Count", "" + numberOfBringLunch);
+                                          Log.v("Not Attending Count", "" + numberOfNotAttending);
+                                          // DEBUG
 
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError)
-            {
-            }
-        });
+                                      }
+
+                                      @Override
+                                      public void onCancelled(DatabaseError databaseError) {
+                                      }
+                                  });
     }
-    private SpannableStringBuilder getAllUsers()
-    {
+
+    private SpannableStringBuilder getAllUsers() {
         SpannableStringBuilder builder = new SpannableStringBuilder();
         String[] users = new String[usersList.size()];
         builder.append("Users: \n");
-        for(int i = 0 ; i< usersList.size(); i++)
-        {
-                users[i] = usersList.get(i).getName() + "\n";
-                switch (usersList.get(i).getEatingStatus())
-                {
-                    case "NOT_ATTENDING":
-                        SpannableString notA= new SpannableString(users[i]);
-                        notA.setSpan(new ForegroundColorSpan(Color.RED), 0, users[i].length(), 0);
-                        builder.append(notA);
-                        break;
-                    case "BRING_LUNCH":
-                        SpannableString brinL= new SpannableString(users[i]);
-                        brinL.setSpan(new ForegroundColorSpan(Color.GREEN), 0, users[i].length(), 0);
-                        builder.append(brinL);
-                        break;
-                    case "EATING_AT_RESTAURANT":
-                        SpannableString eaR= new SpannableString(users[i]);
-                        eaR.setSpan(new ForegroundColorSpan(Color.BLUE), 0, users[i].length(), 0);
-                        builder.append(eaR);
-                        break;
-                    default:
-                        SpannableString def= new SpannableString(users[i]);
-                        def.setSpan(new ForegroundColorSpan(Color.RED), 0, users[i].length(), 0);
-                        builder.append(def);
-                        break;
-                }
+        for(int i = 0; i < usersList.size(); i++) {
+            users[i] = usersList.get(i).getName() + "\n";
+            switch(usersList.get(i).getEatingStatus()) {
+                case "NOT_ATTENDING":
+                    SpannableString notA = new SpannableString(users[i]);
+                    notA.setSpan(new ForegroundColorSpan(Color.RED), 0, users[i].length(), 0);
+                    builder.append(notA);
+                    break;
+                case "BRING_LUNCH":
+                    SpannableString brinL = new SpannableString(users[i]);
+                    brinL.setSpan(new ForegroundColorSpan(Color.GREEN), 0, users[i].length(), 0);
+                    builder.append(brinL);
+                    break;
+                case "EATING_AT_RESTAURANT":
+                    SpannableString eaR = new SpannableString(users[i]);
+                    eaR.setSpan(new ForegroundColorSpan(Color.BLUE), 0, users[i].length(), 0);
+                    builder.append(eaR);
+                    break;
+                default:
+                    SpannableString def = new SpannableString(users[i]);
+                    def.setSpan(new ForegroundColorSpan(Color.RED), 0, users[i].length(), 0);
+                    builder.append(def);
+                    break;
+            }
         }
 
         return builder;
     }
-    private void createAndShowAlert(int position)
-    {
+
+    private void createAndShowAlert(int position) {
         AlertDialog.Builder alert = new AlertDialog.Builder(HomePageActivity.this);
-       LayoutInflater inflater = getLayoutInflater();
+        LayoutInflater inflater = getLayoutInflater();
 
         View customView = inflater.inflate(R.layout.customalert, null);
-        TextView group = (TextView)customView.findViewById(R.id.groupInfo);
-        TextView users = (TextView)customView.findViewById(R.id.usersInfo);
+        TextView group = (TextView) customView.findViewById(R.id.groupInfo);
+        TextView users = (TextView) customView.findViewById(R.id.usersInfo);
 
-        TextView nL = (TextView)customView.findViewById(R.id.lunchCounter);
-        TextView nR = (TextView)customView.findViewById(R.id.restCounter);
-        TextView nNA = (TextView)customView.findViewById(R.id.notACounter);
+        TextView nL = (TextView) customView.findViewById(R.id.lunchCounter);
+        TextView nR = (TextView) customView.findViewById(R.id.restCounter);
+        TextView nNA = (TextView) customView.findViewById(R.id.notACounter);
         Button invitation = (Button) customView.findViewById(R.id.invitations);
-        invitation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        invitation.setOnClickListener(new View.OnClickListener()
+        {
+            @Override public void onClick(View v) {
                 dialogForPhoneNumber();
             }
         });
@@ -274,10 +250,10 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         alert.setView(customView);
 
 
-        group.setText("Group: "+groupList.get(position).getName()+
-                "\n"+"Id: "+groupList.get(position).getID()+
-                "\n"+"Location: "+groupList.get(position).getLocation()+
-                "\n"+"Time: "+groupList.get(position).getTime());
+        group.setText("Group: " + groupList.get(position).getName() + "\n" + "Id: " +
+                      groupList.get(position).getID() + "\n" + "Location: " +
+                      groupList.get(position).getLocation() + "\n" + "Time: " +
+                      groupList.get(position).getTime());
 
         users.setText(getAllUsers(), TextView.BufferType.SPANNABLE);
 
@@ -285,21 +261,23 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         SpannableStringBuilder BLC_builder = new SpannableStringBuilder();
         SpannableStringBuilder BRLC_builder = new SpannableStringBuilder();
 
-        SpannableString notAC= new SpannableString(""+numberOfNotAttending);
-        notAC.setSpan(new ForegroundColorSpan(Color.RED), 0, (""+numberOfNotAttending).length(), 0);
+        SpannableString notAC = new SpannableString("" + numberOfNotAttending);
+        notAC.setSpan(new ForegroundColorSpan(Color.RED), 0, ("" + numberOfNotAttending).length(),
+                      0);
         notAC_builder.append(notAC);
 
-        SpannableString BLC= new SpannableString(""+numberOfBringLunch);
-        BLC.setSpan(new ForegroundColorSpan(Color.GREEN), 0, (""+numberOfBringLunch).length(), 0);
+        SpannableString BLC = new SpannableString("" + numberOfBringLunch);
+        BLC.setSpan(new ForegroundColorSpan(Color.GREEN), 0, ("" + numberOfBringLunch).length(), 0);
         BLC_builder.append(BLC);
 
-        SpannableString BRLC= new SpannableString(""+numberOfEatingAtRestaurant);
-        BRLC.setSpan(new ForegroundColorSpan(Color.BLUE), 0, (""+numberOfEatingAtRestaurant).length(), 0);
+        SpannableString BRLC = new SpannableString("" + numberOfEatingAtRestaurant);
+        BRLC.setSpan(new ForegroundColorSpan(Color.BLUE), 0,
+                     ("" + numberOfEatingAtRestaurant).length(), 0);
         BRLC_builder.append(BRLC);
 
-        nL.setText(notAC_builder,TextView.BufferType.SPANNABLE);
-        nR.setText(BLC_builder,TextView.BufferType.SPANNABLE);
-        nNA.setText(BRLC_builder,TextView.BufferType.SPANNABLE);
+        nL.setText(notAC_builder, TextView.BufferType.SPANNABLE);
+        nR.setText(BLC_builder, TextView.BufferType.SPANNABLE);
+        nNA.setText(BRLC_builder, TextView.BufferType.SPANNABLE);
 
         /*
         alert.setMessage("Group: "+groupList.get(position).getName()+
@@ -310,50 +288,41 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         );
         */
 
-        alert.setNegativeButton(R.string.lunch_box,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        eatingStatus userStatus = eatingStatus.BRING_LUNCH;
-                        dialog.dismiss();
-                        database.userResponseToEating(userStatus.toString());
-                    }
-                });
-        alert.setPositiveButton(R.string.restaurant,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        eatingStatus userStatus = eatingStatus.EATING_AT_RESTAURANT;
-                        database.userResponseToEating(userStatus.toString());
-                        dialog.cancel();
-                        startMap();
-                    }
-                });
-        alert.setNeutralButton(R.string.neutral,
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        eatingStatus userStatus = eatingStatus.NOT_ATTENDING;
-                        database.userResponseToEating(userStatus.toString());
-                        dialog.cancel();
-                    }
-                });
+        alert.setNegativeButton(R.string.lunch_box, new DialogInterface.OnClickListener()
+        {
+            @Override public void onClick(DialogInterface dialog, int which) {
+                eatingStatus userStatus = eatingStatus.BRING_LUNCH;
+                dialog.dismiss();
+                database.userResponseToEating(userStatus.toString());
+            }
+        });
+        alert.setPositiveButton(R.string.restaurant, new DialogInterface.OnClickListener()
+        {
+            @Override public void onClick(DialogInterface dialog, int which) {
+                eatingStatus userStatus = eatingStatus.EATING_AT_RESTAURANT;
+                database.userResponseToEating(userStatus.toString());
+                dialog.cancel();
+                startMap();
+            }
+        });
+        alert.setNeutralButton(R.string.neutral, new DialogInterface.OnClickListener()
+        {
+            @Override public void onClick(DialogInterface dialog, int which) {
+                eatingStatus userStatus = eatingStatus.NOT_ATTENDING;
+                database.userResponseToEating(userStatus.toString());
+                dialog.cancel();
+            }
+        });
         alert.show();
     } // End of createAndShowAlert()
 
     // The purpose of this function is to specify the number of user having each eating status
-    private void settingEatingStatusCount(User myUser)
-    {
-        if (myUser.getEatingStatus().equals(eatingStatus.BRING_LUNCH.toString()))
-        {
+    private void settingEatingStatusCount(User myUser) {
+        if(myUser.getEatingStatus().equals(eatingStatus.BRING_LUNCH.toString())) {
             this.numberOfBringLunch++;
-        }
-        else if (myUser.getEatingStatus().equals(eatingStatus.EATING_AT_RESTAURANT.toString()))
-        {
+        } else if(myUser.getEatingStatus().equals(eatingStatus.EATING_AT_RESTAURANT.toString())) {
             this.numberOfEatingAtRestaurant++;
-        }
-        else
-        {
+        } else {
             this.numberOfNotAttending++;
         }
 
@@ -361,16 +330,14 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
     }
 
     // The purpose of this function is to reset the count of the user
-    private void resetEatingStatusCount()
-    {
+    private void resetEatingStatusCount() {
         this.numberOfEatingAtRestaurant = 0;
-        this.numberOfNotAttending       = 0;
-        this.numberOfBringLunch         = 0;
+        this.numberOfNotAttending = 0;
+        this.numberOfBringLunch = 0;
     }
 
     // The purpose of this code is to display a dialog for requesting the phone number for sending the SMS text
-    private void dialogForPhoneNumber()
-    {
+    private void dialogForPhoneNumber() {
         // Creating the dialog and setting title and splash image
         AlertDialog.Builder alert = new AlertDialog.Builder(HomePageActivity.this);
         alert.setTitle("Enter Phone Number");
@@ -378,16 +345,13 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         // Setting the Textfield for entering the phone number
         final EditText userPhoneInput = new EditText(HomePageActivity.this);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT);
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         userPhoneInput.setLayoutParams(lp);
         alert.setView(userPhoneInput);
         // Setting the Send button invitation
         alert.setPositiveButton(R.string.Send_Invitation, new DialogInterface.OnClickListener()
         {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
+            @Override public void onClick(DialogInterface dialog, int which) {
                 // Clearing the previous Phone Number
                 phoneNumberToSendSMS = "";
                 // Getting the new phone number
@@ -398,73 +362,74 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         });
         alert.show();
     }
+
     // The purpose of this function is to set the permissions for sending SMS
-    private void sendMessage()
-    {
+    private void sendMessage() {
         // If no permission has been granted by the user
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED)
-        {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.SEND_SMS))
-            {
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) !=
+           PackageManager.PERMISSION_GRANTED) {
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this,
+                                                                   android.Manifest.permission.SEND_SMS)) {
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{
+                        android.Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
             }
-            else
-            {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
-            }
-        }
-        else // Permission has been granted by the user
+        } else // Permission has been granted by the user
         {
             this.sendingMessageLogic();
         }
     }
-    @Override
-    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults)
-    {
-        switch (requestCode)
-        {
-            case MY_PERMISSIONS_REQUEST_SEND_SMS:
-            {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
+
+    @Override public void onRequestPermissionsResult(int requestCode, String permissions[],
+                                                     int[] grantResults) {
+        switch(requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                if(grantResults.length > 0 &&
+                   grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     this.sendingMessageLogic();
-                }
-                else
-                {
-                    Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "SMS failed, please try again.",
+                                   Toast.LENGTH_LONG).show();
                     return;
                 }
             }
         }
     }
+
     // This is the logic involved for sending a text message
-    private void sendingMessageLogic()
-    {
-        if(this.phoneNumberIsInteger())
-        {
+    private void sendingMessageLogic() {
+        if(this.phoneNumberIsInteger()) {
             // Setting a message content
-            String messageToSet = "Join us with this code = "+ this.groupID;
+            String messageToSet = "Join us with this code = " + this.groupID;
             // Creating a Manager
             SmsManager smsManager = SmsManager.getDefault();
             // Sending the Text
             smsManager.sendTextMessage(this.phoneNumberToSendSMS, null, messageToSet, null, null);
             // Letting the user know it was a success
             Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
-        }
-        else
-        {
-            Toast.makeText(getApplicationContext(), "Invalid Phone Number", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "Invalid Phone Number", Toast.LENGTH_LONG)
+                 .show();
         }
     }
+
     // Determining if the phone number provided is valie
-    private Boolean phoneNumberIsInteger()
-    {
+    private Boolean phoneNumberIsInteger() {
         return android.util.Patterns.PHONE.matcher(this.phoneNumberToSendSMS).matches();
     }
 
-    @Override
-    protected void onStart() {
+    @Override protected void onStart() {
         database.setActivity(this);
         super.onStart();
+    }
+
+    // Creating an Enumeration for the possible eating status of a user.
+    private enum eatingStatus
+    {
+        // Enumeration values
+        NOT_ATTENDING,
+        EATING_AT_RESTAURANT,
+        BRING_LUNCH;
     }
 
 } // End of class

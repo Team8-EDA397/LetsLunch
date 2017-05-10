@@ -12,17 +12,15 @@ public class Group
     private String id;
 
     // Default constructor
-    public Group()
-    {
+    public Group() {
 
     }
 
-    public Group(String aName, String aLocation, String aTime, String anID)
-    {
-        this.name       = aName;
-        this.location   = aLocation;
-        this.time       = aTime;
-        this.id         = anID;
+    public Group(String aName, String aLocation, String aTime, String anID) {
+        this.name = aName;
+        this.location = aLocation;
+        this.time = aTime;
+        this.id = anID;
     }
 
     // Getters

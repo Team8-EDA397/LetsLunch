@@ -8,20 +8,22 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import java.util.Calendar;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.letslunch.agileteam8.letslunch.R;
 import com.letslunch.agileteam8.letslunch.ReminderReceiver;
 import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
+
+import java.util.Calendar;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
     // Local Variables
@@ -32,22 +34,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ProgressDialog progressDialog;
     private DBHandler database;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
         // Initializing FirebaseAuth object
-        database= DBHandler.getInstance();
+        database = DBHandler.getInstance();
         database.setActivity(this);
 
         // Initializing Widgets
-        editTextemail               = (EditText) findViewById(R.id.user);
-        editTextpassword            = (EditText) findViewById(R.id.pass);
-        buttonLogin                 = (Button) findViewById(R.id.login);
-        textViewcreateAccountLink   = (TextView) findViewById(R.id.link_signup);
-        progressDialog              = new ProgressDialog(this);
+        editTextemail = (EditText) findViewById(R.id.user);
+        editTextpassword = (EditText) findViewById(R.id.pass);
+        buttonLogin = (Button) findViewById(R.id.login);
+        textViewcreateAccountLink = (TextView) findViewById(R.id.link_signup);
+        progressDialog = new ProgressDialog(this);
 
         // Setting listeners
         buttonLogin.setOnClickListener(this);
@@ -57,8 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sendNotification();
 
         // Check if a user is already logged in
-        if (database.isUserAlreadySignedIn())
-        {
+        if(database.isUserAlreadySignedIn()) {
             // Exit the current activity
             finish();
 
@@ -68,16 +67,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     // Performing appropriate actions dependending if "buttonLogin" or "textViewcreateAccountLink" is clicked
-    @Override
-    public void onClick(View v)
-    {
-        if (v == buttonLogin)
-        {
+    @Override public void onClick(View v) {
+        if(v == buttonLogin) {
             // Sign the user
             this.signUser();
-        }
-        else if (v == textViewcreateAccountLink)
-        {
+        } else if(v == textViewcreateAccountLink) {
             // Exit the current activity
             //finish();
 
@@ -88,61 +82,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     // The purpose of this function is to provide the logic for signing a user.
-    private void signUser()
-    {
+    private void signUser() {
         // Getting user credentials
-        String email    = this.editTextemail.getText().toString().trim();
+        String email = this.editTextemail.getText().toString().trim();
         String password = this.editTextpassword.getText().toString().trim();
 
         // Verifying that all email and password were provided
-        if (database.signInValid(email,password))
-        {
+        if(database.signInValid(email, password)) {
             // Displaying message and showing the progress dialog
             progressDialog.setMessage("Signing User ...");
             progressDialog.show();
 
             // Firebase logic for Signing in user
             database.firebaseAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
-                    {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task)
-                        {
-                            // Stop the progress dialog
-                            progressDialog.dismiss();
+                                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
+                                 {
+                                     @Override
+                                     public void onComplete(@NonNull Task<AuthResult> task) {
+                                         // Stop the progress dialog
+                                         progressDialog.dismiss();
 
-                            // Determine if task was completed successfully
-                            if(task.isSuccessful())
-                            {
-                                finish();
+                                         // Determine if task was completed successfully
+                                         if(task.isSuccessful()) {
+                                             finish();
 
-                                // Jump to HomePageActivity Activity
-                                startActivity(new Intent(getApplicationContext(), HomePageActivity.class));
-                            }
-                            else
-                            {
-                                // Notifying the user that registration was NOT successful
-                                Toast.makeText(MainActivity.this, task.getException().getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                            }
+                                             // Jump to HomePageActivity Activity
+                                             startActivity(new Intent(getApplicationContext(),
+                                                                      HomePageActivity.class));
+                                         } else {
+                                             // Notifying the user that registration was NOT successful
+                                             Toast.makeText(MainActivity.this, task.getException()
+                                                                                   .getLocalizedMessage(),
+                                                            Toast.LENGTH_SHORT).show();
+                                         }
 
-                        }
-                    });
+                                     }
+                                 });
         }
     }
 
     // Validating that information was provided to all input fields
-    private boolean isAllInfoProvided(String email, String password)
-    {
+    private boolean isAllInfoProvided(String email, String password) {
 
-        if (TextUtils.isEmpty(email))
-        {
+        if(TextUtils.isEmpty(email)) {
             // Notify user the "Email" field is empty
             Toast.makeText(this, "Please enter an email", Toast.LENGTH_SHORT).show();
 
             return false;
-        }
-        else if (TextUtils.isEmpty(password))
-        {
+        } else if(TextUtils.isEmpty(password)) {
             // Notify user the "Password" field is empty
             Toast.makeText(this, "Please enter a Password", Toast.LENGTH_SHORT).show();
 
@@ -153,33 +140,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+    @Override public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item)
-    {
+    @Override public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings)
-        {
+        if(id == R.id.action_settings) {
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    public void sendNotification()
-    {
+    public void sendNotification() {
         Intent intent = new Intent(this, ReminderReceiver.class);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
@@ -192,7 +173,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //set it to repeat every day (not tested)
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() , AlarmManager.INTERVAL_DAY, pendingIntent);
+        alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(),
+                                         AlarmManager.INTERVAL_DAY, pendingIntent);
 
 
     }

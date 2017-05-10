@@ -1,8 +1,8 @@
 package com.letslunch.agileteam8.letslunch.Activities;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
@@ -16,10 +16,22 @@ public class SelectionActivity extends AppCompatActivity
     Button buylunch;
     Button lunchbox;
     FirebaseAuth firebaseAuth;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
+    private View.OnClickListener buylunchOnClickListener = new View.OnClickListener()
     {
+        @Override public void onClick(View view) {
+            Intent mapActivity = new Intent(SelectionActivity.this, MapsActivity.class);
+            startActivity(mapActivity);
+        }
+    };
+    private View.OnClickListener lunchboxOncLickListener = new View.OnClickListener()
+    {
+        @Override public void onClick(View view) {
+            Intent mapActivity = new Intent(SelectionActivity.this, MapsActivity.class);
+            startActivity(mapActivity);
+        }
+    };
+
+    @Override protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selection);
@@ -35,25 +47,4 @@ public class SelectionActivity extends AppCompatActivity
         lunchbox.setOnClickListener(lunchboxOncLickListener);
 
     }
-
-
-    private View.OnClickListener buylunchOnClickListener = new View.OnClickListener()
-    {
-        @Override
-        public void onClick(View view)
-        {
-            Intent mapActivity = new Intent(SelectionActivity.this, MapsActivity.class);
-            startActivity(mapActivity);
-        }
-    };
-
-    private View.OnClickListener lunchboxOncLickListener = new View.OnClickListener()
-    {
-        @Override
-        public void onClick(View view)
-        {
-            Intent mapActivity = new Intent(SelectionActivity.this, MapsActivity.class);
-            startActivity(mapActivity);
-        }
-    };
 }

@@ -6,7 +6,8 @@ import com.google.android.gms.maps.model.LatLng;
  * Created by miriam on 4/25/2017.
  */
 
-public class Restaurant {
+public class Restaurant
+{
 
 
     private String name;
@@ -14,14 +15,15 @@ public class Restaurant {
     private double longitude;
     private String id;
 
-    public Restaurant(String resId, String resName, double resLatitude, double resLongitude){
+    public Restaurant(String resId, String resName, double resLatitude, double resLongitude) {
         this.latitude = resLatitude;
         this.longitude = resLongitude;
         this.name = resName;
         this.id = resId;
     }
 
-    public Restaurant() { }
+    public Restaurant() {
+    }
 
     public String getName() {
         return name;
@@ -39,6 +41,8 @@ public class Restaurant {
         return latitude;
     }
 
-    public LatLng getLatLng() { return new LatLng(latitude, longitude); }
+    public LatLng getLatLng() {
+        return new LatLng(latitude, longitude);
+    }
 
 }

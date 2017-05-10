@@ -3,18 +3,18 @@ package com.letslunch.agileteam8.letslunch.Activities;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.LocationManager;
-import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
@@ -23,9 +23,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -36,7 +38,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.location.LocationRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -46,111 +47,133 @@ import com.letslunch.agileteam8.letslunch.Restaurant;
 import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
 
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
+                                                              GoogleMap.OnInfoWindowClickListener,
+                                                              GoogleMap.OnMarkerClickListener,
+                                                              GoogleApiClient.ConnectionCallbacks,
+                                                              GoogleApiClient.OnConnectionFailedListener
+{
 
     private static final int TAG_CODE_PERMISSION_LOCATION = 0;
-    // Firebase variables
-    DBHandler database;
-
-    DatabaseReference databaseReference;
-    DatabaseReference dbResSelectionRef=null;
-
-    View.OnClickListener eatHereListener = null;
-    Button eatHereButton;
-
-    String groupID;
-
-    String prevSelection=null;
-
-    GoogleMap mMap;
-    Marker campus;
-
-    private static final double
-            LINDHOLMEN_LAT = 57.7067061,
-            LINDHOLMEN_LNG = 11.9330267;
-
-
-
+    private static final double LINDHOLMEN_LAT = 57.7067061, LINDHOLMEN_LNG = 11.9330267;
     //Define a request code to send to Google Play services
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    // Firebase variables
+    DBHandler database;
+    DatabaseReference databaseReference;
+    DatabaseReference dbResSelectionRef = null;
+    View.OnClickListener eatHereListener = null;
+    Button eatHereButton;
+    String groupID;
+    String prevSelection = null;
+    GoogleMap mMap;
+    Marker campus;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private double currentLatitude;
     private double currentLongitude;
 
 
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
+    @Override public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
         mMap.setOnMarkerClickListener(MapsActivity.this);
 
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {googleMap.setMyLocationEnabled(true);googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-        }
-        else {
-            ActivityCompat.requestPermissions(this, new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION }, TAG_CODE_PERMISSION_LOCATION);
+        if(ContextCompat.checkSelfPermission(this,
+                                             android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+           PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this,
+                                                                                  android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                                                PackageManager.PERMISSION_GRANTED) {
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{
+                                                      android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                                      android.Manifest.permission.ACCESS_COARSE_LOCATION},
+                                              TAG_CODE_PERMISSION_LOCATION);
         }
 
         database = DBHandler.getInstance();
         database.setActivity(this);
 
-        dbResSelectionRef = database.databaseReference.child("UsersAndTheirRestaurants").child(groupID).child(database.getUser());
-        if(dbResSelectionRef!=null){
+        dbResSelectionRef = database.databaseReference.child("UsersAndTheirRestaurants")
+                                                      .child(groupID)
+                                                      .child(database.getUser());
+        if(dbResSelectionRef != null) {
             dbResSelectionRef.addValueEventListener(database.getSelectionListener());
         }
 
 
-        database.databaseReference.child("GroupsAndTheirRestaurants").child(groupID).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange (DataSnapshot dataSnapshot) {
+        database.databaseReference.child("GroupsAndTheirRestaurants")
+                                  .child(groupID)
+                                  .addValueEventListener(new ValueEventListener()
+                                  {
+                                      @Override
+                                      public void onDataChange(DataSnapshot dataSnapshot) {
 
 
-                //Loop through restaurants in Firebase
-                for(DataSnapshot restaurantSnapshot : dataSnapshot.getChildren()) {
-                    //Retrieve restaurant from Firebase
-                    Restaurant restaurant = restaurantSnapshot.getValue(Restaurant.class);
+                                          //Loop through restaurants in Firebase
+                                          for(DataSnapshot restaurantSnapshot : dataSnapshot.getChildren()) {
+                                              //Retrieve restaurant from Firebase
+                                              Restaurant restaurant = restaurantSnapshot.getValue(
+                                                      Restaurant.class);
 
-                    //Put restaurant marker on the map
-                    final Marker restaurantMarker = mMap.addMarker(new MarkerOptions()
-                            .position(restaurant.getLatLng())
-                            .title(restaurant.getName()));
-                    if (restaurantMarker.getTag()==null) {
-                        restaurantMarker.setTag(restaurant.getId());
-                    }
+                                              //Put restaurant marker on the map
+                                              final Marker restaurantMarker = mMap.addMarker(
+                                                      new MarkerOptions().position(
+                                                              restaurant.getLatLng())
+                                                                         .title(restaurant.getName()));
+                                              if(restaurantMarker.getTag() == null) {
+                                                  restaurantMarker.setTag(restaurant.getId());
+                                              }
 
-                    //attempr to retrieve users at the restaurant
-                    database.databaseReference.child("RestaurantsAndTheirUsers")
-                            .child(restaurant.getId())
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot2) {
-                                    restaurantMarker.setSnippet(Long.toString(dataSnapshot2.getChildrenCount()));
+                                              //attempr to retrieve users at the restaurant
+                                              database.databaseReference.child(
+                                                      "RestaurantsAndTheirUsers")
+                                                                        .child(restaurant.getId())
+                                                                        .addListenerForSingleValueEvent(
+                                                                                new ValueEventListener()
+                                                                                {
+                                                                                    @Override
+                                                                                    public void onDataChange(
+                                                                                            DataSnapshot dataSnapshot2) {
+                                                                                        restaurantMarker
+                                                                                                .setSnippet(
+                                                                                                        Long.toString(
+                                                                                                                dataSnapshot2
+                                                                                                                        .getChildrenCount()));
 
-                                    for (DataSnapshot userSnap : dataSnapshot2.getChildren()) {
-                                        restaurantMarker.setSnippet(restaurantMarker.getSnippet() + "," + userSnap.getValue());
-                                    }
-                                }
+                                                                                        for(DataSnapshot userSnap : dataSnapshot2
+                                                                                                .getChildren()) {
+                                                                                            restaurantMarker
+                                                                                                    .setSnippet(
+                                                                                                            restaurantMarker
+                                                                                                                    .getSnippet() +
+                                                                                                            "," +
+                                                                                                            userSnap.getValue());
+                                                                                        }
+                                                                                    }
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
+                                                                                    @Override
+                                                                                    public void onCancelled(
+                                                                                            DatabaseError databaseError) {
 
-                                }
-                            });
+                                                                                    }
+                                                                                });
 
-                }
-            }
+                                          }
+                                      }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                                      @Override
+                                      public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
-
+                                      }
+                                  });
 
 
         //setting current location
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) this.getSystemService(
+                Context.LOCATION_SERVICE);
 
         String locationProvider = LocationManager.GPS_PROVIDER;
 
@@ -160,23 +183,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         currentLongitude = lastKnownLocation.getLongitude();
 
 
-        LatLng zoomPoint = new LatLng(currentLatitude,currentLongitude);
+        LatLng zoomPoint = new LatLng(currentLatitude, currentLongitude);
         float zoomLevel = 14.00f;
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(zoomPoint, zoomLevel), 2000, null);
 
 
         // Setting a custom info window adapter for the google map
-        mMap.setInfoWindowAdapter(new InfoWindowAdapter() {
+        mMap.setInfoWindowAdapter(new InfoWindowAdapter()
+        {
 
             // Use default InfoWindow frame
-            @Override
-            public View getInfoWindow(Marker arg0) {
+            @Override public View getInfoWindow(Marker arg0) {
                 return null;
             }
 
             // Defines the contents of the InfoWindow
-            @Override
-            public View getInfoContents(Marker arg0) {
+            @Override public View getInfoContents(Marker arg0) {
 
                 // Getting view from the layout file info_window_layout
                 View v = getLayoutInflater().inflate(R.layout.windowinfo, null);
@@ -195,7 +217,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                 // Setting the people
-                people.setText("People coming:"+ info[0]);
+                people.setText("People coming:" + info[0]);
 
                 //change to get values from snippet string
 
@@ -203,16 +225,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 TextView person1 = (TextView) v.findViewById(R.id.person1);
 
 
-
                 CharSequence text = "";
-                for (int i=1; i< info.length; i++ ) {
-                    if ( person1.getText()!=null) {
-                        text=person1.getText();
+                for(int i = 1; i < info.length; i++) {
+                    if(person1.getText() != null) {
+                        text = person1.getText();
                     }
-                    if (i+1!=info.length) {
+                    if(i + 1 != info.length) {
                         person1.setText(text + info[i] + "\n");
-                    }
-                    else {
+                    } else {
                         person1.setText(text + info[i]);
                     }
 
@@ -225,21 +245,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         // Adding and showing marker while touching the GoogleMap
-        mMap.setOnMapClickListener(new OnMapClickListener() {
+        mMap.setOnMapClickListener(new OnMapClickListener()
+        {
 
-            @Override
-            public void onMapClick(LatLng arg0) {
+            @Override public void onMapClick(LatLng arg0) {
 
-                if(eatHereButton!=null) {
+                if(eatHereButton != null) {
                     eatHereButton.setVisibility(View.INVISIBLE);
                 }
             }
         });
 
         //Add location after long click.
-        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-            @Override
-            public void onMapLongClick(LatLng latLng) {
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener()
+        {
+            @Override public void onMapLongClick(LatLng latLng) {
 
                 final LatLng latLngCopy = latLng;
                 final double lat = latLng.latitude;
@@ -257,14 +277,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 alertBuilder.setView(input);
 
 
-                alertBuilder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                alertBuilder.setPositiveButton("Confirm", new DialogInterface.OnClickListener()
+                {
                     public void onClick(DialogInterface dialog, int id) {
                         String resName = input.getText().toString();
 
-                        Marker m1 = mMap.addMarker(new MarkerOptions()
-                            .position(latLngCopy)
-                                .title(resName)
-                                    .snippet("0")
+                        Marker m1 = mMap.addMarker(
+                                new MarkerOptions().position(latLngCopy).title(resName).snippet("0")
 
                         );
                         // User clicked OK button
@@ -272,7 +291,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     }
                 });
-                alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                alertBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener()
+                {
                     public void onClick(DialogInterface dialog, int id) {
                         // User cancelled the dialog
                         dialog.cancel();
@@ -285,17 +305,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener()
+        {
 
-            @Override
-            public void onInfoWindowClick (Marker arg0) throws  SecurityException{
+            @Override public void onInfoWindowClick(Marker arg0) throws SecurityException {
 
                 // Navigate until the restaurant pointed by the marker
                 LatLng position = arg0.getPosition();
                 String cLo = Double.toString(position.longitude);
                 String cLa = Double.toString(position.latitude);
 
-                Uri gmmIntentUri = Uri.parse("google.navigation:q="+cLa+","+cLo+"&mode=w");
+                Uri gmmIntentUri = Uri.parse("google.navigation:q=" + cLa + "," + cLo + "&mode=w");
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 startActivity(mapIntent);
@@ -306,14 +326,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) throws SecurityException{
-        switch (requestCode) {
+    @Override public void onRequestPermissionsResult(int requestCode, String permissions[],
+                                                     int[] grantResults) throws SecurityException {
+        switch(requestCode) {
             case TAG_CODE_PERMISSION_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if(grantResults.length > 0 &&
+                   grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
@@ -333,42 +352,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         groupID = getIntent().getStringExtra("GROUP_ID");
 
         // Getting reference to the SupportMapFragment of activity_main.xml
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(
+                R.id.map);
 
         // Getting GoogleMap object from the fragment
         mapFragment.getMapAsync(this);
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 // The next two lines tell the new client that “this” current class will handle connection stuff
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
+                .addConnectionCallbacks(this).addOnConnectionFailedListener(this)
                 //fourth line adds the LocationServices API endpoint from GooglePlayServices
-                .addApi(LocationServices.API)
-                .build();
+                .addApi(LocationServices.API).build();
 
         // Create the LocationRequest object
         mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+                                          .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                                          .setInterval(
+                                                  10 * 1000)        // 10 seconds, in milliseconds
+                                          .setFastestInterval(
+                                                  1 * 1000); // 1 second, in milliseconds
 
         FloatingActionButton rest = (FloatingActionButton) findViewById(R.id.myFAB);
-        rest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        rest.setOnClickListener(new View.OnClickListener()
+        {
+            @Override public void onClick(View v) {
 
                 // Shows all restaurants near your location
                 String cLa = Double.toString(currentLatitude);
                 String cLo = Double.toString(currentLongitude);
 
-                Uri gmmIntentUri = Uri.parse("geo:"+cLa+","+cLo+"?z=10&q=restaurants");
+                Uri gmmIntentUri = Uri.parse("geo:" + cLa + "," + cLo + "?z=10&q=restaurants");
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
                 mapIntent.setPackage("com.google.android.apps.maps");
                 startActivity(mapIntent);
@@ -377,74 +396,88 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    @Override public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
 
-    public ValueEventListener getSelectionListener(){
-        return new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.getValue()!=null){
-                    prevSelection =(String)dataSnapshot.getValue();
+    public ValueEventListener getSelectionListener() {
+        return new ValueEventListener()
+        {
+            @Override public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot.getValue() != null) {
+                    prevSelection = (String) dataSnapshot.getValue();
                 }
             }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+            @Override public void onCancelled(DatabaseError databaseError) {
 
             }
         };
     }
 
     //method that defines what happens when clicking a marker
-    @Override
-    public boolean onMarkerClick(final Marker marker) {
+    @Override public boolean onMarkerClick(final Marker marker) {
         final String restId = marker.getTag().toString();
         marker.showInfoWindow();
-        database.databaseReference.child("RestaurantsAndTheirUsers").child(restId).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+        database.databaseReference.child("RestaurantsAndTheirUsers")
+                                  .child(restId)
+                                  .addValueEventListener(new ValueEventListener()
+                                  {
+                                      @Override
+                                      public void onDataChange(DataSnapshot dataSnapshot) {
 
 
-                //Retrieve users at the restaurant
-                database.databaseReference.child("RestaurantsAndTheirUsers")
-                        .child(restId)
-                        .addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot2) {
-                                marker.setSnippet(Long.toString(dataSnapshot2.getChildrenCount()));
+                                          //Retrieve users at the restaurant
+                                          database.databaseReference.child(
+                                                  "RestaurantsAndTheirUsers")
+                                                                    .child(restId)
+                                                                    .addListenerForSingleValueEvent(
+                                                                            new ValueEventListener()
+                                                                            {
+                                                                                @Override
+                                                                                public void onDataChange(
+                                                                                        DataSnapshot dataSnapshot2) {
+                                                                                    marker.setSnippet(
+                                                                                            Long.toString(
+                                                                                                    dataSnapshot2
+                                                                                                            .getChildrenCount()));
 
 
-                                for (DataSnapshot userSnap : dataSnapshot2.getChildren()) {
+                                                                                    for(DataSnapshot userSnap : dataSnapshot2
+                                                                                            .getChildren()) {
 
-                                    marker.setSnippet(marker.getSnippet() + "," + userSnap.getValue());
-                                }
+                                                                                        marker.setSnippet(
+                                                                                                marker.getSnippet() +
+                                                                                                "," +
+                                                                                                userSnap.getValue());
+                                                                                    }
 
-                                //refresh infowindow with new info
-                                if (marker != null && marker.isInfoWindowShown()) {
-                                    marker.hideInfoWindow();
-                                    marker.showInfoWindow();
-                                }
-                            }
+                                                                                    //refresh infowindow with new info
+                                                                                    if(marker !=
+                                                                                       null &&
+                                                                                       marker.isInfoWindowShown()) {
+                                                                                        marker.hideInfoWindow();
+                                                                                        marker.showInfoWindow();
+                                                                                    }
+                                                                                }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
+                                                                                @Override
+                                                                                public void onCancelled(
+                                                                                        DatabaseError databaseError) {
 
-                            }
-                        });
+                                                                                }
+                                                                            });
 
-            }
+                                      }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                                      @Override
+                                      public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
+                                      }
+                                  });
 
 
         // Animating to the currently touched marker
@@ -453,16 +486,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         eatHereButton = (Button) findViewById(R.id.eatHereButton);
         eatHereButton.setVisibility(View.VISIBLE);
 
-        eatHereListener = new View.OnClickListener() {
-            CharSequence text="";
-            @Override
-            public void onClick(View v) {
-                if (marker.getTag()!=null) {
+        eatHereListener = new View.OnClickListener()
+        {
+            CharSequence text = "";
+
+            @Override public void onClick(View v) {
+                if(marker.getTag() != null) {
                     database.joinRestaurant(marker.getTag().toString(), prevSelection);
                     text = "Joining Restaurant";
                     eatHereButton.setVisibility(View.INVISIBLE);
-                }
-                else {
+                } else {
                     text = "failed to join restaurant try again ";
                 }
                 int duration = Toast.LENGTH_SHORT;
@@ -475,59 +508,54 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         eatHereButton.setOnClickListener(eatHereListener);
 
 
-
         return true;
     }
 
 
-
-
-    @Override
-    public void onInfoWindowClick(Marker marker) {
+    @Override public void onInfoWindowClick(Marker marker) {
 
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) throws SecurityException {
+    @Override public void onConnected(@Nullable Bundle bundle) throws SecurityException {
 
-            Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-            if (location == null) {
-                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (LocationListener) this);
+        if(location == null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                                                                     mLocationRequest,
+                                                                     (LocationListener) this);
 
-            } else {
-                //If everything went fine lets get latitude and longitude
-                currentLatitude = location.getLatitude();
-                currentLongitude = location.getLongitude();
+        } else {
+            //If everything went fine lets get latitude and longitude
+            currentLatitude = location.getLatitude();
+            currentLongitude = location.getLongitude();
 
-                //Toast.makeText(this, currentLatitude + " WORKS " + currentLongitude + "", Toast.LENGTH_LONG).show();
-            }
-    }
-      
-    
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
+            //Toast.makeText(this, currentLatitude + " WORKS " + currentLongitude + "", Toast.LENGTH_LONG).show();
+        }
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    @Override public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         /*
              * Google Play services can resolve some errors it detects.
              * If the error has a resolution, try sending an Intent to
              * start a Google Play services activity that can resolve
              * error.
              */
-        if (connectionResult.hasResolution()) {
+        if(connectionResult.hasResolution()) {
             try {
                 // Start an Activity that tries to resolve the error
-                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                connectionResult.startResolutionForResult(this,
+                                                          CONNECTION_FAILURE_RESOLUTION_REQUEST);
                     /*
                      * Thrown if Google Play services canceled the original
                      * PendingIntent
                      */
-            } catch (IntentSender.SendIntentException e) {
+            } catch(IntentSender.SendIntentException e) {
                 // Log the error
                 e.printStackTrace();
             }
@@ -536,7 +564,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                  * If no resolution is available, display a dialog to the
                  * user with the error.
                  */
-            Log.e("Error", "Location services connection failed with code " + connectionResult.getErrorCode());
+            Log.e("Error", "Location services connection failed with code " +
+                           connectionResult.getErrorCode());
         }
     }
 

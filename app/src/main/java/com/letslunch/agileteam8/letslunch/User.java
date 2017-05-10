@@ -10,31 +10,26 @@ public class User
     private String eatingStatus;
 
     // Default constructor
-    public User()
-    {
+    public User() {
 
     }
 
-    public User(String aName)
-    {
+    public User(String aName) {
         this.name = aName;
         this.eatingStatus = "No Status";
     }
 
-    public User(String aName, String aStatus )
-    {
-        this.name           = aName;
-        this.eatingStatus   = aStatus;
+    public User(String aName, String aStatus) {
+        this.name = aName;
+        this.eatingStatus = aStatus;
     }
 
     // Getter
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
-    public String getEatingStatus()
-    {
+    public String getEatingStatus() {
         return eatingStatus;
     }
 } // End of class
