@@ -5,8 +5,11 @@ package com.letslunch.agileteam8.letslunch.Activities;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.Menu;
 import android.view.View;
@@ -34,6 +37,7 @@ import com.letslunch.agileteam8.letslunch.Utils.DBHandler;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
 
+    private static final int TAG_CODE_PERMISSION_LOCATION = 0;
     // Firebase variables
     DBHandler database;
 
@@ -62,6 +66,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setOnMarkerClickListener(MapsActivity.this);
         // Add a marker in Lindholmen (Gothenburg), Sweden,
         // and move the map's camera to the same location.
+
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                        PackageManager.PERMISSION_GRANTED) {
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[] {
+                                                      android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                                      android.Manifest.permission.ACCESS_COARSE_LOCATION },
+                                              TAG_CODE_PERMISSION_LOCATION);
+            //Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
+        }
+
 
 
         database = DBHandler.getInstance();
