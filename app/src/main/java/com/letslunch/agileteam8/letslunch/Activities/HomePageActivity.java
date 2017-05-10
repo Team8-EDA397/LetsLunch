@@ -136,38 +136,6 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         startActivity(intent);
     }
 
-//     @Override
-//     protected void onStart() {
-//         super.onStart();
-
-//         databaseGroups.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
-//             @Override
-//             public void onDataChange (DataSnapshot dataSnapshot) {
-//                 groupList.clear();
-//                 for(DataSnapshot groupsSnapshot : dataSnapshot.getChildren()){
-
-//                     // if (groupsSnapshot.getValue().equals(firebaseAuth.getCurrentUser().getUid())){
-//                     //    Group group = new Group(firebaseAuth.getCurrentUser().getUid(),"","","");
-//                     //    groupList.add(group);
-
-//                      Group group = groupsSnapshot.getValue(Group.class);
-//                      groupList.add(group);
-//                 }
-
-//                 GroupList adapter = new GroupList(HomePageActivity.this,groupList);
-//                 listViewGroups.setAdapter(adapter);
-//             }
-
-//             @Override
-//             public void onCancelled(DatabaseError databaseError) {
-
-//             }
-//         });
-//     }
-
-
-
-
     // Performing appropriate actions depending on what button is clicked
     @Override
     public void onClick(View v)
@@ -189,39 +157,7 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
             startActivity(new Intent(this, JoinGroupActivity.class));
         }
     }
-/*
-    // The purpose of this class is to update the eating status of the user for a given group
-    private void userResponseToEating(String userStatus)
-    {
-        // Get a firebase user object
-        FirebaseUser user = database.getUser();
 
-        // Get the display name of the user
-        String userDisplayName  = user.getDisplayName();
-
-        // Create an User object
-        User updatedUser = new User(userDisplayName, userStatus);
-
-        // Update the current user eating status by storing the User object
-        database.databaseReference.child("GroupsAndTheirMembers").child(this.groupID).child(user.getUid()).setValue(updatedUser).addOnCompleteListener(this, new OnCompleteListener<Void>()
-        {
-            @Override
-            public void onComplete(@NonNull Task<Void> task)
-            {
-                // Determine if task was completed successfully
-                if(task.isSuccessful())
-                {
-                    // Notifying the user that saving was NOT successful
-                    Toast.makeText(HomePageActivity.this, "Your status has been updated.", Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    Toast.makeText(HomePageActivity.this, "Unable to let your friends know.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-*/
     public void loadGroup(){
         database.databaseReference.child("UserAndTheirGroups").child(currentUser).addValueEventListener(new ValueEventListener() {
             @Override
