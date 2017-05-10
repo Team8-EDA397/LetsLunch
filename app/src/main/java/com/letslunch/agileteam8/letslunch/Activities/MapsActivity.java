@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -147,16 +148,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
-        //TODO change this to zoom to user location
-        final LatLng lindholmen = new LatLng(LINDHOLMEN_LAT, LINDHOLMEN_LNG);
 
-        /*
-        campus = googleMap.addMarker(new MarkerOptions().position(lindholmen)
-                .title("Marker in Lindholmen"));
-*/
-        float zoomLevel = 14.00f; //This goes up to 21
-        //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lindholmen,zoomLevel));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(lindholmen, zoomLevel), 2000, null);
+        //setting current location
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+        String locationProvider = LocationManager.GPS_PROVIDER;
+
+        Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
+
+        currentLatitude = lastKnownLocation.getLatitude();
+        currentLongitude = lastKnownLocation.getLongitude();
+
+
+        LatLng zoomPoint = new LatLng(currentLatitude,currentLongitude);
+        float zoomLevel = 14.00f;
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(zoomPoint, zoomLevel), 2000, null);
 
 
         // Setting a custom info window adapter for the google map
@@ -197,7 +203,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 TextView person1 = (TextView) v.findViewById(R.id.person1);
 
 
-                //CHANGE!!!
+
                 CharSequence text = "";
                 for (int i=1; i< info.length; i++ ) {
                     if ( person1.getText()!=null) {
