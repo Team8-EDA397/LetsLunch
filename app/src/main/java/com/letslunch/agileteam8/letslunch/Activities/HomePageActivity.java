@@ -461,4 +461,10 @@ public class HomePageActivity extends AppCompatActivity implements View.OnClickL
         return android.util.Patterns.PHONE.matcher(this.phoneNumberToSendSMS).matches();
     }
 
+    @Override
+    protected void onStart() {
+        database.setActivity(this);
+        super.onStart();
+    }
+
 } // End of class
