@@ -148,7 +148,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
-
+/*
         //setting current location
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
@@ -159,8 +159,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         currentLatitude = lastKnownLocation.getLatitude();
         currentLongitude = lastKnownLocation.getLongitude();
 
-
-        LatLng zoomPoint = new LatLng(currentLatitude,currentLongitude);
+*/
+        LatLng zoomPoint = new LatLng(LINDHOLMEN_LAT,LINDHOLMEN_LNG);
         float zoomLevel = 14.00f;
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(zoomPoint, zoomLevel), 2000, null);
 

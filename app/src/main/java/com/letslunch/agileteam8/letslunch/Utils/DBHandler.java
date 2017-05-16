@@ -62,7 +62,7 @@ public class DBHandler
     public void setActivity(Activity activity){
         this.activity = activity;
 
-        Toast.makeText(activity, "Inside the DBHandler, activity set", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(activity, "Inside the DBHandler, activity set", Toast.LENGTH_SHORT).show();
     }
     //----------------------------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ public class DBHandler
      */
     public boolean isUserAlreadySignedIn()
     {
-        Toast.makeText(activity, "Inside the DBHandler, checking user", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(activity, "Inside the DBHandler, checking user", Toast.LENGTH_SHORT).show();
 
         if(firebaseAuth.getCurrentUser() != null)
         {
@@ -86,7 +86,7 @@ public class DBHandler
             return true;
         }
 
-        Toast.makeText(activity, "Inside the DBHandler, user was null ", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(activity, "Inside the DBHandler, user was null ", Toast.LENGTH_SHORT).show();
 
         return false;
 
