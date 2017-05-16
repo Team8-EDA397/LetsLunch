@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import com.letslunch.agileteam8.letslunch.Activities.CreateGroupActivity;
+import com.letslunch.agileteam8.letslunch.Activities.SignupActivity;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +40,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest({Toast.class, Context.class, TextUtils.class, Intent.class})
 public class CreateGroupTest {
 
-    private createGroup myCreateGroup;
+    private CreateGroupActivity myCreateGroup;
     private Toast mToast;
 
     public static final String TEST_LONG_ID = "123456789";
@@ -50,7 +53,7 @@ public class CreateGroupTest {
     @Before
     public void setup(){
         //setup class to test
-        myCreateGroup = new createGroup();
+        myCreateGroup = new CreateGroupActivity();
 
         //setup mocks
         mToast = PowerMockito.mock(Toast.class);
